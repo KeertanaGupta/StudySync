@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from users.views import GoogleLogin, UserProfileUpdateView
+from users.views import GoogleLogin, UserProfileUpdateView, FindStudyMatchesView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -28,4 +28,5 @@ urlpatterns = [
     # Your custom Google login endpoint
     path('api/auth/google/', GoogleLogin.as_view(), name='google_login'),
     path('api/user/profile/',UserProfileUpdateView.as_view(),name='update_profile'),
+    path('api/match/', FindStudyMatchesView.as_view(), name='find_matches'),
 ]
