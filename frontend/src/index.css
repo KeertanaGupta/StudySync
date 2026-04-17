@@ -1,0 +1,25 @@
+:root {
+  --bg-yellow: #fdfae5;
+  --black: #000000;
+  --white: #ffffff;
+  --hard-shadow: 4px 4px 0px 0px var(--black);
+  --hero-shadow: 8px 8px 0px 0px var(--black);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Courier New', Courier, monospace; /* Monospace for that retro look */
+}
+
+body {
+  background-color: var(--bg-yellow);
+  /* Pure CSS Grid Background */
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--black);
+  min-height: 100vh;
+}
