@@ -1,0 +1,15 @@
+# Base Framework
+Django>=4.2,<5.0
+djangorestframework>=3.14.0
+
+# Database & Environment
+psycopg2-binary>=2.9.9
+django-environ>=0.11.2
+
+# Authentication & Google OAuth
+dj-rest-auth>=5.0.2
+django-allauth>=0.58.2
+djangorestframework-simplejwt>=5.3.1
+
+# Security & Frontend Communication
+django-cors-headers>=4.3.1
