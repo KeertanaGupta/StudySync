@@ -1,0 +1,8 @@
+# Python virtual environments
+venv/
+env/
+__pycache__/
+
+# AI Models (so you don't upload heavy local models later)
+*.pt
+*.bin

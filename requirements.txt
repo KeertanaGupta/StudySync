@@ -13,3 +13,9 @@ djangorestframework-simplejwt>=5.3.1
 
 # Security & Frontend Communication
 django-cors-headers>=4.3.1
+
+fastapi
+uvicorn
+sentence-transformers
+numpy
+pydantic
