@@ -3,16 +3,18 @@ from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from dj_rest_auth.registration.views import SocialLoginView
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import UserProfileUpdateSerializer, UserSkillSerializer
 from django.contrib.auth import get_user_model
 from .models import UserSkill, Skill
 from rest_framework import status
 import requests
+from datetime import datetime, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from allauth.socialaccount.models import SocialToken
 import json
+
 User = get_user_model()
 
 class UserProfileUpdateView(generics.UpdateAPIView):
@@ -114,7 +116,7 @@ class ManageUserSkillsAPIView(APIView):
         serializer = UserSkillSerializer(user_skill)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# --- 2. Generate Quiz via OpenRouter ---
+# --- Generate Quiz via OpenRouter ---
 class GenerateQuizView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -132,7 +134,6 @@ class GenerateQuizView(APIView):
             headers = {
                 "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
-                # OpenRouter recommends these optional headers for ranking/analytics
                 "HTTP-Referer": "http://localhost:5173", 
                 "X-Title": "StudySync Arsenal"
             }
@@ -169,12 +170,12 @@ class GenerateQuizView(APIView):
 
             # 3. Call OpenRouter
             response = requests.post(openrouter_url, headers=headers, json=payload)
-            response.raise_for_status() # Check for HTTP errors (401, 400, etc.)
+            response.raise_for_status() 
             
             response_data = response.json()
             raw_text = response_data['choices'][0]['message']['content'].strip()
 
-            # 4. Clean up the response (GPT-3.5 sometimes ignores the "no markdown" rule)
+            # 4. Clean up the response
             if raw_text.startswith("```json"):
                 raw_text = raw_text[7:]
             if raw_text.startswith("```"):
@@ -199,12 +200,11 @@ class GenerateQuizView(APIView):
             print("Server Error:", str(e))
             return Response({"error": "An unexpected error occurred."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# --- 3. Grade & Award Level ---
+# --- Grade & Award Level ---
 class SubmitQuizAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        # Expected input: {"results": {"Python": {"total": 10, "correct": 8}}}
         results = request.data.get('results', {})
         
         for skill_name, stats in results.items():
@@ -234,7 +234,6 @@ class UserSkillListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Fetch only the skills belonging to the logged-in user
         user_skills = UserSkill.objects.filter(user=request.user)
         serializer = UserSkillSerializer(user_skills, many=True)
         return Response(serializer.data)
@@ -245,10 +244,8 @@ class UserSkillListView(APIView):
         if not skill_name:
             return Response({"error": "Skill name is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 1. Get or create the global Skill (from your screenshot table)
         skill_obj, _ = Skill.objects.get_or_create(name__iexact=skill_name, defaults={'name': skill_name})
 
-        # 2. Check if THIS USER already has this skill linked
         user_skill, created = UserSkill.objects.get_or_create(
             user=request.user,
             skill=skill_obj,
@@ -256,8 +253,99 @@ class UserSkillListView(APIView):
         )
 
         if not created:
-            # This is why you were seeing the alert!
             return Response({"error": "This skill is already in your arsenal!"}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserSkillSerializer(user_skill)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+# ==========================================
+# UNIFIED CSP SCHEDULER BRIDGE (Layer 1 Data)
+# ==========================================
+def fetch_live_google_events(user):
+    """Fetches real Google events and formats them for the CSP Engine."""
+    try:
+        token = SocialToken.objects.get(account__user=user, account__provider='google')
+        headers = {'Authorization': f'Bearer {token.token}'}
+        
+        now = datetime.utcnow()
+        time_min = now.isoformat() + 'Z'
+        time_max = (now + timedelta(days=7)).isoformat() + 'Z' # Next 7 days
+        
+        url = f"https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin={time_min}&timeMax={time_max}&singleEvents=true"
+        response = requests.get(url, headers=headers)
+        
+        if response.status_code == 200:
+            events = response.json().get('items', [])
+            formatted_events = []
+            for event in events:
+                start = event['start'].get('dateTime', event['start'].get('date'))
+                end = event['end'].get('dateTime', event['end'].get('date'))
+                if start and end:
+                    # Map to the strict TimeBlock format the AI expects
+                    formatted_events.append({"start": start, "end": end})
+            return formatted_events
+        return []
+    except SocialToken.DoesNotExist:
+        return []
+
+def map_user_preferences(availability_string):
+    """Converts a Django string ('mornings') into the AI's float math."""
+    prefs = {"morning": 0.0, "afternoon": 0.0, "evening": 0.0}
+    if not availability_string:
+        return prefs 
+        
+    avail = availability_string.lower()
+    if "mornings" in avail: prefs["morning"] = 1.0
+    if "afternoons" in avail: prefs["afternoon"] = 1.0
+    if "evenings" in avail: prefs["evening"] = 1.0
+    
+    return prefs
+
+class LiveGroupScheduleView(APIView):
+    permission_classes = [AllowAny] 
+
+    def post(self, request):
+        target_user_ids = request.data.get('user_ids', [])
+        duration_hours = request.data.get('duration_hours', 2)
+
+        if not target_user_ids:
+            return Response({"error": "Please provide a list of user_ids."})
+
+        users = User.objects.filter(id__in=target_user_ids)
+        ai_users_payload = []
+        
+        for u in users:
+            # 1. Fetch real Google Calendar data
+            real_events = fetch_live_google_events(u)
+            
+            # 2. Map their preferences
+            user_prefs = map_user_preferences(u.availability)
+            
+            # 3. Build the strict UserSchedule structure
+            ai_users_payload.append({
+                "user_id": u.username or str(u.id), 
+                "timezone": "UTC",
+                "busy_slots": real_events,
+                "preferences": user_prefs
+            })
+
+        # Assemble the final payload for the AI
+        ai_payload = {
+            "duration_hours": duration_hours,
+            "users": ai_users_payload
+        }
+
+        try:
+            print("🚀 Django: Sending live data to AI Engine on Port 8002...")
+            # Fire the payload to your FastApi server!
+            ai_response = requests.post("http://127.0.0.1:8002/api/schedule", json=ai_payload)
+            
+            if ai_response.status_code != 200:
+                print("❌ AI Engine rejected the payload:", ai_response.text)
+                return Response({"error": "AI validation failed"}, status=500)
+                
+            return Response(ai_response.json())
+            
+        except requests.exceptions.ConnectionError:
+            return Response({"error": "AI Scheduler offline (Port 8002)."}, status=500)
