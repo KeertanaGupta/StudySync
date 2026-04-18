@@ -23,8 +23,23 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
 class GoogleLogin(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
-    callback_url = "http://localhost:3000"  # Your Next.js URL
+    callback_url = "http://localhost:5173"  # Your Next.js URL
     client_class = OAuth2Client
+
+    def get_response(self):
+        serializer_class = self.get_response_serializer()
+        serializer = serializer_class(instance=self.token, context={'request': self.request})
+        
+        # This is the standard data dj-rest-auth generates
+        data = serializer.data 
+        
+        # We wrap it to ensure 'access' and 'is_profile_complete' are at the top level
+        custom_data = {
+            'access': data.get('access_token') or data.get('key'), # Support both JWT and Token
+            'user': data.get('user'),
+            'is_profile_complete': self.user.is_profile_complete # Grab directly from user model
+        }
+        return Response(custom_data)
 
 class FindStudyMatchesView(APIView):
     permission_classes = [AllowAny] # Open for testing!

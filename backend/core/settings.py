@@ -122,8 +122,12 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
 
 REST_USE_JWT = True  # Enable JWT for StudySync
@@ -153,3 +157,12 @@ CORS_ALLOWED_ORIGINS = [
 
 # Allow credentials just in case you need to pass cookies later
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "authorization", # CRITICAL
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
