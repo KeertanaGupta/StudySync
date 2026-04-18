@@ -4,7 +4,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isProfileComplete: boolean;
   user: any | null;
-  login: (token: string, user: any) => void;
+  login: (data: any) => void; // ✅ FIXED
   logout: () => void;
   markProfileComplete: () => void;
 }

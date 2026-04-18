@@ -12,11 +12,15 @@ import requests
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+import json
 User = get_user_model()
 
 class UserProfileUpdateView(generics.UpdateAPIView):
     serializer_class = UserProfileUpdateSerializer
     permission_classes = [IsAuthenticated] # Only logged-in users can do this
+
+    def get_object(self):
+        return self.request.user  # ✅ FIX ADDED
 
     def get(self, request):
         # Make sure it says 'request.user' here!
