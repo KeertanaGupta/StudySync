@@ -5,16 +5,21 @@ from .services.ai_handler import fetch_ai_quiz
 from .models import UserSkill, Skill
 
 class GenerateQuizView(APIView):
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
-        skill_name = request.data.get('skills')
+        # Expecting { "skills": ["Python", "Django"] } from React
+        skills = request.data.get('skills', [])
+        
+        if not skills:
+            return Response({"error": "No skills provided"}, status=400)
+
         try:
-            questions = fetch_ai_quiz(skill_name)
+            # Call our new Gemini handler
+            questions = fetch_ai_quiz(skills)
             return Response({"questions": questions})
         except Exception as e:
-            return Response({"error": "AI could not generate quiz"}, status=500)
-
+            import traceback
+            traceback.print_exc() # Still keep this for debugging
+            return Response({"error": str(e)}, status=500)
 class SubmitQuizView(APIView):
     permission_classes = [IsAuthenticated]
 
