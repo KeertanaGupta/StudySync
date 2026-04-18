@@ -23,7 +23,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 2. Safety Check: Only save it if it's a real string
     if (typeof token === 'string') {
       localStorage.setItem('access_token', token);
-      localStorage.setItem('is_profile_complte', String(isComplete));
+      localStorage.setItem('is_profile_complete', String(isComplete));
       
       set({ 
         isAuthenticated: true, 
