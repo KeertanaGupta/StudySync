@@ -50,9 +50,9 @@ export const AuthCard = ({ onBack }: { onBack?: () => void }) => {
         </button>
 
         {/* Back button mapping back to your Landing page */}
-        <button className="back-link" onClick={onBack}>
+        {/* <button className="back-link" onClick={onBack}>
           ← Back to Home
-        </button>
+        </button> */}
       </div>
     </div>
   );

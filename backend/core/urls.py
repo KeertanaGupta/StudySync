@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from users.views import GoogleLogin, UserProfileUpdateView, FindStudyMatchesView, ManageUserSkillsAPIView, GenerateQuizView, SubmitQuizAPIView
+from users.views import GoogleLogin, UserProfileUpdateView, FindStudyMatchesView, ManageUserSkillsAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 urlpatterns = [
@@ -33,6 +33,6 @@ urlpatterns = [
     path('api/match/', FindStudyMatchesView.as_view(), name='find_matches'),
 
     path('api/skills/', ManageUserSkillsAPIView.as_view(), name='manage-skills'),
-    path('quiz/generate/', GenerateQuizView.as_view(), name='quiz-generate'),
-    path('quiz/submit/', SubmitQuizAPIView.as_view(), name='quiz-submit'),
+    path('api/', include('users.urls')), 
+
 ]

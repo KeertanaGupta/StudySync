@@ -26,7 +26,7 @@ export const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   // --- API ACTIONS ---
-
+  
   // 1. Fetch User Skills
   const fetchSkills = async () => {
     try {
