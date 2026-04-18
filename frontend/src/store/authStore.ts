@@ -14,16 +14,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   isProfileComplete: localStorage.getItem('is_profile_complete') === 'true',
   user: null,
   
-  login: (token, user) => {
-    localStorage.setItem('access_token', token);
-    const isComplete = user?.is_profile_complete === true;
-    localStorage.setItem('is_profile_complete', String(isComplete));
-    
-    set({ 
-      isAuthenticated: true, 
-      user,
-      isProfileComplete: isComplete
-    });
+  login: (data: any) => {
+    // 1. Unpack the object
+    const token = data.access; 
+    const user = data.user;
+    const isComplete = Boolean(data.is_profile_complete); 
+
+    // 2. Safety Check: Only save it if it's a real string
+    if (typeof token === 'string') {
+      localStorage.setItem('access_token', token);
+      localStorage.setItem('is_profile_complte', String(isComplete));
+      
+      set({ 
+        isAuthenticated: true, 
+        user: user,
+        isProfileComplete: isComplete 
+      });
+      
+      console.log("✅ Store Updated Properly!");
+    } else {
+      console.error("❌ Token Extraction Failed. Received:", data);
+    }
   },
   
   markProfileComplete: () => {

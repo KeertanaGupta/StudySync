@@ -1,0 +1,91 @@
+/* AuthCard.css */
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  /* If you want the grid background here too, uncomment below */
+  /* background-color: var(--neo-bg);
+  background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px; */
+}
+
+.auth-card {
+  background: white;
+  border: 4px solid var(--neo-black, #0f172a);
+  box-shadow: 12px 12px 0 var(--neo-black, #0f172a);
+  padding: 50px 40px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.auth-header {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 10px;
+  letter-spacing: -1px;
+}
+
+.auth-subtitle {
+  font-family: monospace;
+  font-size: 0.95rem;
+  color: #64748b;
+  margin-bottom: 40px;
+}
+
+/* The Custom Google Button */
+.neo-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  width: 100%;
+  background: white;
+  color: black;
+  border: 3px solid black;
+  padding: 15px 20px;
+  font-size: 1.1rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 5px 5px 0 black;
+  transition: all 0.1s ease-in-out;
+  border-radius: 8px;
+}
+
+.neo-google-btn:hover {
+  transform: translate(3px, 3px);
+  box-shadow: 2px 2px 0 black;
+  background: #f8fafc;
+}
+
+.neo-google-btn:active {
+  transform: translate(5px, 5px);
+  box-shadow: 0px 0px 0 black;
+}
+
+.google-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-top: 30px;
+  font-family: monospace;
+  font-weight: bold;
+  color: black;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  transition: border-bottom 0.2s;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.back-link:hover {
+  border-bottom: 2px solid black;
+}

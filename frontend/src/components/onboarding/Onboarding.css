@@ -1,0 +1,86 @@
+.ob-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 20px;
+}
+
+.ob-card {
+  background: var(--white);
+  border: 4px solid var(--black);
+  box-shadow: var(--hero-shadow);
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.ob-progress {
+  width: 100%;
+  height: 20px;
+  background: #eee;
+  border: 2px solid var(--black);
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.ob-progress-fill {
+  height: 100%;
+  background: #fde047; /* Bright Yellow */
+  border-right: 2px solid var(--black);
+  transition: width 0.3s ease;
+}
+
+.ob-title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+}
+
+.ob-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.ob-option-btn {
+  background: var(--white);
+  border: 3px solid var(--black);
+  padding: 20px;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: var(--hard-shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  transition: 0.1s;
+}
+
+.ob-option-btn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--black);
+  background-color: var(--bg-yellow);
+}
+
+.ob-option-btn span {
+  font-size: 2rem;
+}
+
+/* Loading Spinner for when we save to Django */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--black);
+  border-top: 4px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

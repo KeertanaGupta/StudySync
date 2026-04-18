@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from .models import Skill, UserSkill
 
 User = get_user_model()
 
@@ -22,3 +23,11 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'semester',
             'institution'
         ]
+
+class UserSkillSerializer(serializers.ModelSerializer):
+    # This 'source' tells Django to look at the 'name' inside the linked 'skill' model
+    name = serializers.CharField(source='skill.name', read_only=True)
+
+    class Meta:
+        model = UserSkill
+        fields = ['id', 'name', 'is_verified', 'level']

@@ -1,0 +1,296 @@
+:root {
+  --neo-bg: #fffceb; /* Pale yellow background */
+  --neo-card-bg: #fff1e6; /* 🔥 The new light orangish tint for cards */
+  --neo-black: #0f172a;
+  --neo-border: 3px solid var(--neo-black);
+  --neo-shadow: 6px 6px 0px var(--neo-black);
+  --neo-shadow-sm: 4px 4px 0px var(--neo-black);
+}
+
+/* --- MAIN LAYOUT --- */
+.dash-wrapper {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--neo-bg);
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--neo-black);
+  font-family: monospace;
+}
+
+/* --- SIDEBAR --- */
+.dash-sidebar {
+  width: 250px;
+  border-right: var(--neo-border);
+  background: var(--neo-bg);
+  padding: 30px 20px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-align: center;
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  background: var(--neo-black);
+  color: white;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-family: sans-serif;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.sidebar-link:hover {
+  border: 2px solid var(--neo-black);
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0 var(--neo-black);
+}
+
+.sidebar-link.active {
+  background: #fef08a; /* Yellow highlight */
+  border: 2px solid var(--neo-black);
+  box-shadow: 2px 2px 0 var(--neo-black);
+}
+
+/* --- MAIN CONTENT AREA --- */
+.dash-main {
+  flex: 1;
+  padding: 0 40px 40px 40px;
+  overflow-y: auto;
+}
+
+/* Top Nav */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.top-nav-icons {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.icon-btn {
+  background: white;
+  border: 2px solid var(--neo-black);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0 var(--neo-black);
+}
+
+/* Header */
+.welcome-header h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  font-family: sans-serif;
+  margin-bottom: 10px;
+}
+.welcome-header p {
+  color: #475569;
+  margin-bottom: 40px;
+}
+
+/* --- GRIDS --- */
+/* Top 4 Cards (Replacing generic stats with DNA) */
+.dna-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+/* Quick Actions (3 columns) */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+/* Bottom Split (Skills left, Notifications right) */
+.bottom-split-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+/* --- CARD STYLES --- */
+.neo-card {
+  background: var(--neo-card-bg);
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow-sm);
+  padding: 25px;
+  border-radius: 12px;
+}
+
+.stat-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  background: white;
+  border: 2px solid var(--neo-black);
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  font-family: sans-serif;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #475569;
+  font-weight: bold;
+}
+
+/* Quick Action Cards */
+.action-card {
+  background: var(--neo-card-bg);
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow-sm);
+  padding: 30px 20px;
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.action-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: var(--neo-shadow);
+}
+
+.action-card.dark {
+  background: var(--neo-black);
+  color: white;
+}
+
+.action-icon {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border: 2px solid var(--neo-black);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+  color: var(--neo-black);
+}
+
+/* --- TECHNICAL ARSENAL (SKILLS) STYLES --- */
+.skill-legend {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  padding: 10px;
+  border: 2px dashed var(--neo-black);
+  background: white;
+  width: fit-content;
+}
+
+.legend-item { display: flex; align-items: center; gap: 8px; }
+.legend-color { width: 14px; height: 14px; border: 2px solid var(--neo-black); border-radius: 50%; }
+
+.skill-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 2px solid var(--neo-black);
+  font-weight: 900;
+  font-family: sans-serif;
+  box-shadow: 3px 3px 0 var(--neo-black);
+  border-radius: 6px;
+  cursor: default;
+}
+
+.level-unverified { background: white; color: #64748b; border-style: dashed; }
+.level-beginner { background: #bae6fd; } /* Blue */
+.level-intermediate { background: #fef08a; } /* Yellow */
+.level-advanced { background: #bbf7d0; } /* Green */
+
+.verify-btn {
+  background: var(--neo-black);
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.add-skill-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+.add-skill-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid var(--neo-black);
+  font-family: monospace;
+  font-size: 1rem;
+}
+.btn-primary {
+  background: var(--neo-black);
+  color: white;
+  border: none;
+  padding: 0 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #bae6fd;
+}

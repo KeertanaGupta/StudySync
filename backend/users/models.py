@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.conf import settings
+
 
 class User(AbstractUser):
     # ==========================================
@@ -67,3 +69,30 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email or self.username
+    
+    
+class Skill(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+class UserSkill(models.Model):
+    LEVEL_CHOICES = (
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('advanced', 'Advanced'),
+    )
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='skills')
+    skill = models.ForeignKey(Skill, on_delete=models.CASCADE)
+    
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='beginner')
+    is_verified = models.BooleanField(default=False) # Remains false until they pass the AI test
+    last_tested_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'skill') # Prevents adding "React" twice for the same user
+
+    def __str__(self):
+        return f"{self.user.email} - {self.skill.name} ({self.level})"
