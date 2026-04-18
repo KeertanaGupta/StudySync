@@ -2,38 +2,44 @@ import json
 import requests
 from django.conf import settings
 
-def fetch_ai_quiz(skill_name):
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    
-    # Check if key exists
-    api_key = getattr(settings, "OPENROUTER_API_KEY", None)
-    if not api_key:
-        raise Exception("OPENROUTER_API_KEY is missing in settings.py")
+# users/services/ai_handler.py
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:5173", # Required by OpenRouter
-        "X-Title": "StudySync"
-    }
+def fetch_ai_quiz(skills_list):
+    api_key = getattr(settings, "GEMINI_API_KEY", None)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     
-    prompt = f"Generate 3 multiple choice questions for {skill_name}. Return ONLY a JSON array of objects with: question, options (list of 4), correct_answer, difficulty."
+    # 1. Shorter Prompt = Shorter Response = No cutting off
+    prompt = f"""
+    Create a 10-question quiz for: {', '.join(skills_list)}. 
+    Return ONLY a raw JSON array. Keep question text concise.
+    Structure: [{{"skill_name":"","question":"","options":["","","",""],"correct_answer":"","difficulty":""}}]
+    """
 
     payload = {
-        "model": "openai/gpt-3.5-turbo",
-        "messages": [{"role": "user", "content": prompt}]
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.2, # 👈 Keep it very focused
+            "maxOutputTokens": 4096, # 👈 Doubled this so it doesn't cut off mid-string
+            "responseMimeType": "application/json"
+        }
     }
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers={'Content-Type': 'application/json'}, json=payload)
     
-    # 🚩 If this fails, it's likely a 401 (Unauthorized) or 429 (Rate Limit)
     if response.status_code != 200:
-        raise Exception(f"OpenRouter Error: {response.status_code} - {response.text}")
+        raise Exception(f"Gemini Error: {response.status_code}")
 
-    content = response.json()['choices'][0]['message']['content'].strip()
+    res_data = response.json()
     
-    # 🧼 Clean markdown backticks
-    if "```" in content:
-        content = content.split("```")[1].replace("json", "").strip()
-    
-    return json.loads(content)
+    try:
+        content = res_data['candidates'][0]['content']['parts'][0]['text'].strip()
+        
+        # 2. Advanced Cleaning (Removes any accidental markdown)
+        if content.startswith("```"):
+            content = content.replace("```json", "").replace("```", "").strip()
+            
+        return json.loads(content)
+    except Exception as e:
+        # If it still fails, let's see what it sent in the terminal
+        print(f"RAW CONTENT FROM AI: {content[:100]}...") 
+        raise e

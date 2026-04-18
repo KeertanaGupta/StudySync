@@ -172,3 +172,5 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
+
+SOCIALACCOUNT_AUTO_SIGNUP = True
