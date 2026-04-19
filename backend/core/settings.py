@@ -58,9 +58,19 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'corsheaders',
     'users',
-    
-    
+    'study',
+    'cloudinary',
+    'cloudinary_storage',
 ]
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME', 'your_cloud_name'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY', 'your_api_key'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET', 'your_api_secret'),
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -137,6 +147,10 @@ REST_FRAMEWORK = {
 
 REST_USE_JWT = True  # Enable JWT for StudySync
 
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER': 'users.serializers.UserSerializer',
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -172,3 +186,9 @@ CORS_ALLOW_HEADERS = [
     "x-requested-with",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
+
+# LiveKit Configuration
+LIVEKIT_URL = os.getenv('LIVEKIT_URL', 'wss://your-project.livekit.cloud')
+LIVEKIT_API_KEY = os.getenv('LIVEKIT_API_KEY')
+LIVEKIT_API_SECRET = os.getenv('LIVEKIT_API_SECRET')
+SOCIALACCOUNT_STORE_TOKENS = True

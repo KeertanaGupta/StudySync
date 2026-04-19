@@ -24,6 +24,11 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'institution'
         ]
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'is_profile_complete')
+
 class UserSkillSerializer(serializers.ModelSerializer):
     # This 'source' tells Django to look at the 'name' inside the linked 'skill' model
     name = serializers.CharField(source='skill.name', read_only=True)
