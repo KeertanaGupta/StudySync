@@ -42,7 +42,7 @@ export const Dashboard = () => {
   const fetchSkills = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const res = await axios.get('http://localhost:8000/api/skills/', {
+      const res = await axios.get('/api/skills/', {
         headers: { 'Authorization': `Token ${token}` }
       });
       setSkills(res.data);
@@ -55,7 +55,7 @@ export const Dashboard = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        const res = await axios.get('http://localhost:8000/api/user/profile/', {
+        const res = await axios.get('/api/user/profile/', {
           headers: { 'Authorization': `Token ${token}` }
         });
         setProfileData(res.data);
@@ -75,7 +75,7 @@ export const Dashboard = () => {
     if (!newSkillStr.trim()) return;
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post('http://localhost:8000/api/skills/', 
+      await axios.post('/api/skills/', 
         { name: newSkillStr },
         { headers: { 'Authorization': `Token ${token}` } }
       );

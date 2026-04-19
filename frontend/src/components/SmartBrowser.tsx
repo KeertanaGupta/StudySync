@@ -22,7 +22,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
       try {
         const token = localStorage.getItem('access_token');
         // We match your backend expectation: { skill: "Python" }
-        const res = await axios.post('http://localhost:8000/api/quiz/generate/', 
+        const res = await axios.post('/api/quiz/generate/', 
           { skill: skillsToTest[0] },
           { headers: { 'Authorization': `Token ${token}` } }
         );
@@ -57,7 +57,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
     try {
       const token = localStorage.getItem('access_token');
       // Sending results to your SubmitQuizView
-      await axios.post('http://localhost:8000/api/quiz/submit/', {
+      await axios.post('/api/quiz/submit/', {
         skill: skillsToTest[0],
         correct_count: correctCount,
         total: questions.length

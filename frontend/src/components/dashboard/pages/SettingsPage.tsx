@@ -15,7 +15,7 @@ export const SettingsPage = () => {
     try {
       const token = localStorage.getItem('access_token');
       // Update backend
-      await axios.patch('http://localhost:8000/api/user/profile/', {
+      await axios.patch('/api/user/profile/', {
         username: displayName, 
         institution: institution
       }, {

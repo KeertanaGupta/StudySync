@@ -50,7 +50,7 @@ export const MatchesPage = () => {
 
     try {
       // 🚨 UPDATED URL: Now hitting /api/match/ as requested
-      const response = await axios.get('http://localhost:8000/api/match/', {
+      const response = await axios.get('/api/match/', {
         headers: { Authorization: `Token ${token}` }
       });
 
