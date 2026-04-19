@@ -6,7 +6,7 @@ import {
   Home, Calendar, Users, BookOpen, Bell, Settings, 
   Search, Sun, User, Layout, SearchCode, Video, PlusCircle
 } from 'lucide-react';
-import './Dashboard.css';
+import './dashboard.css';
 import SessionList from "../sessions/SessionList";
 import CreateSession from "../sessions/CreateSession";
 
