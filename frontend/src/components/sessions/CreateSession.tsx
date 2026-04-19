@@ -157,7 +157,7 @@ const CreateSession: React.FC<{ onSuccess: () => void }> = ({ onSuccess }) => {
         >
           {loading ? 'Creating Matrix...' : (
             <>
-               <shield size={20} className="text-indigo-400" />
+               <Shield size={20} className="text-indigo-400" />
                Launch Multi-User Session
             </>
           )}
