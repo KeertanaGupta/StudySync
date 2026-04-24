@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 import { useAuthStore } from '../../store/authStore';
 import './Onboarding.css';
 
@@ -94,7 +95,7 @@ export const Onboarding = () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('access_token');
-        await axios.patch('http://localhost:8000/api/user/profile/', {
+        await axios.patch(`${API_BASE_URL}/api/user/profile/`, {
           ...updatedAnswers,
           is_profile_complete: true
         }, {
@@ -136,9 +137,11 @@ export const Onboarding = () => {
               onChange={(e) => setAnswers({...answers, institution: e.target.value})}
             />
             <button 
-              className="nb-btn-primary" 
+              className="nb-btn primary" 
               style={{ marginTop: '20px', width: '100%' }}
-              onClick={() => answers.institution && handleNext()}
+              onClick={() => {
+                if (answers.institution.trim()) handleNext();
+              }}
             >
               Continue →
             </button>

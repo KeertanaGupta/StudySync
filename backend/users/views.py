@@ -364,9 +364,54 @@ class FindStudyMatchesView(APIView):
         }
 
         try:
-            ai_response = requests.post("http://127.0.0.1:8001/api/match", json=payload, timeout=2)
-            return Response(ai_response.json()) 
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            openrouter_url = "https://openrouter.ai/api/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                "Content-Type": "application/json"
+            }
+
+            prompt = (
+                "You are an AI Matchmaker for a study app. Score the compatibility (0-100) between the target_user and each user in all_users.\n"
+                "Return ONLY a JSON array of objects with 'user_id' and 'score'.\n"
+                f"Data: {json.dumps(payload)}"
+            )
+
+            response = requests.post(openrouter_url, headers=headers, json={
+                "model": "google/gemini-pro",
+                "messages": [{"role": "user", "content": prompt}]
+            })
+            response.raise_for_status()
+
+            raw_text = response.json()['choices'][0]['message']['content'].strip()
+            if raw_text.startswith("```json"): raw_text = raw_text[7:]
+            if raw_text.startswith("```"): raw_text = raw_text[3:]
+            if raw_text.endswith("```"): raw_text = raw_text[:-3]
+
+            ai_scores = json.loads(raw_text.strip())
+            score_map = {str(item['user_id']): item['score'] for item in ai_scores}
+
+            matches = []
+            for u in other_users:
+                score = score_map.get(str(u.id), 50)
+                matches.append({
+                    "user_id": u.id,
+                    "name": f"{u.first_name} {u.last_name}" if u.first_name else u.username,
+                    "institution": u.institution or "Independent",
+                    "score": score,
+                    "shared_skills": list(u.skills.values_list('skill__name', flat=True)[:3]),
+                    "learning_style": u.get_learning_style_display() or "Incomplete Profile",
+                    "study_goal": u.get_study_goal_display() or "Flexible",
+                    "role": u.get_role_display() or "Member",
+                    "availability": u.get_availability_display() or "TBD",
+                    "is_profile_complete": u.is_profile_complete
+                })
+            
+            matches.sort(key=lambda x: x['score'], reverse=True)
+            return Response({"matches": matches[:10], "engine": "AI Engine (Gemini)"})
+
+        except Exception as e:
+            print("AI Matchmaking Error:", str(e))
+            # FALLBACK NATIVE ENGINE
             matches = []
             for u in other_users:
                 score = 50 
@@ -388,7 +433,7 @@ class FindStudyMatchesView(APIView):
                 })
             
             matches.sort(key=lambda x: x['score'], reverse=True)
-            return Response({"matches": matches[:10], "engine": "Native Engine"})
+            return Response({"matches": matches[:10], "engine": "Native Engine (Fallback)"})
 
 # ==========================================
 # UNIFIED CSP SCHEDULER BRIDGE (Layer 1 Data)
@@ -412,8 +457,9 @@ def fetch_live_google_events(user):
             for event in events:
                 start = event['start'].get('dateTime', event['start'].get('date'))
                 end = event['end'].get('dateTime', event['end'].get('date'))
+                summary = event.get('summary', 'Busy')
                 if start and end:
-                    formatted_events.append({"start": start, "end": end})
+                    formatted_events.append({"start": start, "end": end, "summary": summary})
             return formatted_events
         return []
     except SocialToken.DoesNotExist:
@@ -472,6 +518,13 @@ class LiveGroupScheduleView(APIView):
             
         except requests.exceptions.ConnectionError:
             return Response({"error": "AI Scheduler offline (Port 8002)."}, status=500)
+
+class SyncGoogleCalendarView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        events = fetch_live_google_events(request.user)
+        return Response({"events": events})
 
 # ==========================================
 # MISSING GROUPS APP LOGIC GOES HERE LATER!

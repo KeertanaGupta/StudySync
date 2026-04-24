@@ -16,7 +16,7 @@
     linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 40px 40px; /* The graph paper grid effect */
   color: var(--neo-black);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'Inter', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -69,7 +69,7 @@
 }
 
 .theme-toggle {
-  background: white;
+  background: var(--white);
   border: var(--neo-border);
   width: 40px;
   height: 40px;
@@ -106,11 +106,11 @@
 
 .nb-badge {
   display: inline-block;
-  background: white;
+  background: var(--white);
   border: var(--neo-border);
   padding: 8px 16px;
   border-radius: 50px;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-weight: bold;
   box-shadow: 3px 3px 0 var(--neo-black);
@@ -129,7 +129,7 @@
   font-size: 1.25rem;
   max-width: 700px;
   margin: 0 auto 40px;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   line-height: 1.6;
 }
 
@@ -146,7 +146,7 @@
   border: var(--neo-border);
   padding: 15px 30px;
   font-weight: bold;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   cursor: pointer;
   box-shadow: var(--neo-shadow);
@@ -159,7 +159,7 @@
   border: var(--neo-border);
   padding: 15px 30px;
   font-weight: bold;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 1rem;
   cursor: pointer;
   box-shadow: var(--neo-shadow);
@@ -172,7 +172,7 @@
 }
 
 .nb-trusted {
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
   font-weight: bold;
 }
@@ -194,7 +194,7 @@
 
 .section-label {
   text-align: center;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-weight: bold;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -212,7 +212,7 @@
 
 .section-subtitle {
   text-align: center;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   margin-bottom: 60px;
   max-width: 600px;
   margin-left: auto;
@@ -265,7 +265,7 @@
 }
 
 .nb-card p {
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   line-height: 1.5;
   opacity: 0.8;
@@ -340,7 +340,7 @@
 .step-icon {
   width: 80px;
   height: 80px;
-  background: white;
+  background: var(--white);
   border: var(--neo-border);
   border-radius: 50%;
   display: flex;
@@ -357,7 +357,7 @@
   top: -5px;
   right: -5px;
   background: var(--neo-black);
-  color: white;
+  color: var(--white);
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -374,7 +374,7 @@
 }
 
 .timeline-step p {
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.85rem;
 }
 
@@ -397,7 +397,7 @@
 }
 
 .cta-banner p {
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   margin-bottom: 40px;
 }
 
@@ -411,7 +411,7 @@
 }
 
 .footer-brand p {
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   margin: 20px 0;
   max-width: 300px;
 }
@@ -443,7 +443,7 @@
   display: block;
   color: var(--neo-black);
   text-decoration: none;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   margin-bottom: 10px;
 }
 
@@ -454,7 +454,7 @@
   padding-top: 20px;
   display: flex;
   justify-content: space-between;
-  font-family: monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
 }
 

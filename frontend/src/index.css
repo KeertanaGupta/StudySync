@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;700;900&display=swap');
+
 :root {
   --bg-yellow: #fdfae5;
   --black: #000000;
@@ -6,11 +8,22 @@
   --hero-shadow: 8px 8px 0px 0px var(--black);
 }
 
+.dark-theme {
+  --bg-yellow: #1e293b;
+  --black: #f8fafc;
+  --white: #0f172a;
+  --neo-white: #0f172a;
+  --hard-shadow: 4px 4px 0px 0px #0f172a;
+  --hero-shadow: 8px 8px 0px 0px #0f172a;
+}
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Courier New', Courier, monospace; /* Monospace for that retro look */
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {

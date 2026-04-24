@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 import { toast } from 'sonner';
 
 // Make sure these IDs match the ones you generated in your Django shell!
@@ -39,7 +40,7 @@ export const AdvancedScheduler = () => {
     setHasSearched(true);
     try {
       const token = localStorage.getItem('access_token');
-      const res = await axios.post('http://localhost:8000/api/group-schedule/', {
+      const res = await axios.post(`${API_BASE_URL}/api/group-schedule/`, {
         user_ids: selectedUserIds,
         duration_hours: duration
       }, {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 import { toast } from 'sonner';
 
 interface SmartTestBrowserProps {
@@ -88,7 +89,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
       while (!success && attempts < maxAttempts) {
         try {
           attempts++;
-          const res = await axios.post('http://localhost:8000/api/quiz/generate/', 
+          const res = await axios.post(`${API_BASE_URL}/api/quiz/generate/`, 
             { skills: Array.isArray(skillsToTest) ? skillsToTest : [skillsToTest] },
             { headers: { 'Authorization': `Token ${token}` } }
           );
@@ -140,7 +141,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
 
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post('http://localhost:8000/api/quiz/submit/', {
+      await axios.post(`${API_BASE_URL}/api/quiz/submit/`, {
         skill: skillsToTest[0],
         correct_count: correctCount,
         total: questions.length

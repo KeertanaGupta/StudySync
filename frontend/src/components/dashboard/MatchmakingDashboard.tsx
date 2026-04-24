@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 import { toast } from 'sonner';
 
 export const MatchmakingDashboard = () => {
@@ -11,7 +12,7 @@ export const MatchmakingDashboard = () => {
       try {
         const token = localStorage.getItem('access_token');
         // This hits Django (8000), which queries Postgres, then asks FastAPI (8001) for the math!
-        const res = await axios.get('http://localhost:8000/api/matchmaking/', {
+        const res = await axios.get(`${API_BASE_URL}/api/matchmaking/`, {
           headers: { 'Authorization': `Token ${token}` }
         });
         

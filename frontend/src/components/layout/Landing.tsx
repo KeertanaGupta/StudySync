@@ -1,4 +1,4 @@
-// src/components/layout/Landing.tsx
+import { useState, useEffect } from 'react';
 import './Landing.css';
 
 interface LandingProps {
@@ -6,6 +6,18 @@ interface LandingProps {
 }
 
 export const Landing = ({ onLoginClick }: LandingProps) => {
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
   return (
     <div className="landing-page">
       {/* NAVBAR */}
@@ -23,7 +35,9 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
         </div>
 
         <div className="nb-nav-actions">
-          <button className="theme-toggle">☼</button>
+          <button className="theme-toggle" onClick={() => setIsDarkMode(!isDarkMode)}>
+            {isDarkMode ? '☾' : '☼'}
+          </button>
           <button className="nb-btn-text" onClick={onLoginClick}>Sign in</button>
           <button className="nb-btn-black" onClick={onLoginClick}>Get Started</button>
         </div>

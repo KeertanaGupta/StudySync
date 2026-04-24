@@ -1,12 +1,25 @@
-import { useEffect, useState, FormEvent } from 'react';
+import React, { useEffect, useState, type FormEvent } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
 import { useAuthStore } from '../../store/authStore';
 import { SmartTestBrowser } from '../SmartBrowser';
 import { 
   Home, Calendar, Users, BookOpen, Bell, Settings, 
-  Search, Sun, User, Layout, SearchCode, Video, PlusCircle
+  Search, Sun, Moon, User, Layout, SearchCode, Video, PlusCircle
 } from 'lucide-react';
 import './Dashboard.css';
+import SessionList from "../sessions/SessionList";
+import CreateSession from "../sessions/CreateSession";
+
+// Pages
+import { SchedulePage } from "./pages/SchedulePage";
+import { MatchesPage } from "./pages/MatchesPage";
+import { GroupsPage } from "./pages/GroupsPage";
+import { ResourcesPage } from "./pages/ResourcesPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import FriendsPage from "./pages/FriendsPage";
+import { SettingsPage } from "./pages/SettingsPage";
+import { LiveKitVideoChat } from "./LiveKitVideoChat";
 
 const DNA_MAPS = {
   style: { visual: "Visual", auditory: "Auditory", reading: "Reading", practice: "Practice" },
@@ -23,11 +36,28 @@ export const Dashboard = () => {
   const [newSkillStr, setNewSkillStr] = useState("");
   const [testingSkill, setTestingSkill] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState("home");
+  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [showCreateSession, setShowCreateSession] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Handle Theme Toggle
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   const fetchSkills = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const res = await axios.get('http://localhost:8000/api/skills/', {
+      const res = await axios.get(`${API_BASE_URL}/api/skills/`, {
         headers: { 'Authorization': `Token ${token}` }
       });
       setSkills(res.data);
@@ -40,7 +70,7 @@ export const Dashboard = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('access_token');
-        const res = await axios.get('http://localhost:8000/api/user/profile/', {
+        const res = await axios.get(`${API_BASE_URL}/api/user/profile/`, {
           headers: { 'Authorization': `Token ${token}` }
         });
         setProfileData(res.data);
@@ -60,7 +90,7 @@ export const Dashboard = () => {
     if (!newSkillStr.trim()) return;
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post('http://localhost:8000/api/skills/', 
+      await axios.post(`${API_BASE_URL}/api/skills/`, 
         { name: newSkillStr },
         { headers: { 'Authorization': `Token ${token}` } }
       );
@@ -99,13 +129,14 @@ export const Dashboard = () => {
           
           <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '10px' }}>Menu</div>
           <nav className="sidebar-menu">
-            <div className="sidebar-link active"><Home size={18}/> Home</div>
-            <div className="sidebar-link"><Calendar size={18}/> Schedule</div>
-            <div className="sidebar-link"><SearchCode size={18}/> Matches</div>
-            <div className="sidebar-link"><Users size={18}/> My Groups</div>
-            <div className="sidebar-link"><BookOpen size={18}/> Resources</div>
-            <div className="sidebar-link"><Bell size={18}/> Notifications</div>
-            <div className="sidebar-link"><Settings size={18}/> Settings</div>
+            <div className={`sidebar-link ${currentPage === 'home' ? 'active' : ''}`} onClick={() => setCurrentPage('home')}><Home size={18}/> Home</div>
+            <div className={`sidebar-link ${currentPage === 'schedule' ? 'active' : ''}`} onClick={() => setCurrentPage('schedule')}><Calendar size={18}/> Schedule</div>
+            <div className={`sidebar-link ${currentPage === 'matches' ? 'active' : ''}`} onClick={() => setCurrentPage('matches')}><SearchCode size={18}/> Matches</div>
+            <div className={`sidebar-link ${currentPage === 'groups' ? 'active' : ''}`} onClick={() => setCurrentPage('groups')}><Users size={18}/> My Groups</div>
+            <div className={`sidebar-link ${currentPage === 'resources' ? 'active' : ''}`} onClick={() => setCurrentPage('resources')}><BookOpen size={18}/> Resources</div>
+            <div className={`sidebar-link ${currentPage === 'social' ? 'active' : ''}`} onClick={() => setCurrentPage('social')}><Users size={18}/> Social</div>
+            <div className={`sidebar-link ${currentPage === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentPage('notifications')}><Bell size={18}/> Notifications</div>
+            <div className={`sidebar-link ${currentPage === 'settings' ? 'active' : ''}`} onClick={() => setCurrentPage('settings')}><Settings size={18}/> Settings</div>
           </nav>
 
           <div style={{ marginTop: 'auto' }}>
@@ -123,19 +154,59 @@ export const Dashboard = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
               <Layout size={20} /> Dashboard
             </div>
-            <div className="top-nav-icons">
-              <div className="icon-btn"><Search size={18}/></div>
-              <div className="icon-btn"><Bell size={18}/></div>
-              <div className="icon-btn"><Sun size={18}/></div>
-              <div className="icon-btn" style={{ background: '#fef08a' }}><User size={18}/></div>
+            <div className="top-nav-icons" style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+              {/* 1. Search */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {isSearchExpanded && (
+                  <input 
+                    type="text" 
+                    placeholder="Search anything..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      padding: '8px 15px',
+                      borderRadius: '8px',
+                      border: '2px solid var(--neo-black)',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      width: '200px',
+                      animation: 'fadeIn 0.2s ease-in-out',
+                      background: 'var(--neo-card-bg)',
+                      color: 'var(--neo-black)'
+                    }}
+                    autoFocus
+                  />
+                )}
+                <div className="icon-btn" onClick={() => setIsSearchExpanded(!isSearchExpanded)} title="Search">
+                  <Search size={18}/>
+                </div>
+              </div>
+
+              {/* 2. Notifications */}
+              <div className="icon-btn" onClick={() => setCurrentPage('notifications')} title="Notifications">
+                <Bell size={18}/>
+              </div>
+
+              {/* 3. Theme Toggle */}
+              <div className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)} title="Toggle Theme">
+                {isDarkMode ? <Moon size={18}/> : <Sun size={18}/>}
+              </div>
+
+              {/* 4. User Profile */}
+              <div className="icon-btn" style={{ background: '#fef08a' }} onClick={() => setCurrentPage('settings')} title="Profile/Settings">
+                <User size={18} color="#000" />
+              </div>
             </div>
           </header>
 
-          {/* Welcome Text */}
-          <div className="welcome-header">
-            <h1>Welcome back, {user?.name?.split(' ')[0] || "Student"}! 👋</h1>
-            <p>Here's what's happening with your Study DNA and Arsenal today.</p>
-          </div>
+          {/* Welcome Text, Top Cards, etc. will only show if currentPage === 'home' */}
+          {currentPage === 'home' && (
+            <>
+              {/* Welcome Text */}
+              <div className="welcome-header">
+                <h1>Welcome back, {user?.name?.split(' ')[0] || "Student"}! 👋</h1>
+                <p>Here's what's happening with your Study DNA and Arsenal today.</p>
+              </div>
 
           {/* Top 4 Cards: STUDY DNA mapped to the stat block style */}
           <div className="dna-stats-grid">
@@ -164,7 +235,7 @@ export const Dashboard = () => {
           {/* Quick Actions */}
           <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>⚡ Quick Actions</div>
           <div className="quick-actions-grid">
-            <div className="action-card">
+            <div className="action-card" onClick={() => setCurrentPage('matches')} style={{ cursor: 'pointer' }}>
               <div className="action-icon"><SearchCode size={24}/></div>
               <h3 style={{ margin: '0 0 5px 0' }}>Find a Match</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Discover new study partners</p>
@@ -180,7 +251,30 @@ export const Dashboard = () => {
               <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Start your own study circle</p>
             </div>
           </div>
+          {/* 🎥 GROUP STUDY SESSIONS */}
+<div style={{ marginTop: "30px" }}>
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: '15px' }}>
+    <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>
+       🎥 GROUP STUDY SESSIONS
+    </div>
+    <button className="nb-btn primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }} onClick={() => setShowCreateSession(!showCreateSession)}>
+      {showCreateSession ? 'CANCEL' : 'LAUNCH NEW SESSION'}
+    </button>
+  </div>
 
+  {showCreateSession && (
+    <div className="neo-card" style={{ marginBottom: "20px" }}>
+      <CreateSession onSuccess={() => setShowCreateSession(false)} />
+    </div>
+  )}
+
+  <div className="neo-card">
+    <SessionList onJoin={(id) => {
+      setSelectedSessionId(id);
+      setCurrentPage('video-chat');
+    }} />
+  </div>
+</div>
           {/* Bottom Split Area */}
           <div className="bottom-split-grid">
             
@@ -254,6 +348,25 @@ export const Dashboard = () => {
             </div>
 
           </div>
+          </>
+          )}
+
+          {/* Subpages Navigation */}
+          {currentPage === 'schedule' && (
+            <SchedulePage onJoinSession={(sessionId) => {
+              setSelectedSessionId(sessionId);
+              setCurrentPage('video-chat');
+            }} />
+          )}
+          {currentPage === 'matches' && <MatchesPage />}
+          {currentPage === 'groups' && <GroupsPage />}
+          {currentPage === 'social' && <FriendsPage />}
+          {currentPage === 'resources' && <ResourcesPage />}
+          {currentPage === 'notifications' && <NotificationsPage />}
+          {currentPage === 'settings' && <SettingsPage isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />}
+          {currentPage === 'video-chat' && selectedSessionId && (
+            <LiveKitVideoChat sessionId={selectedSessionId} onLeave={() => setCurrentPage('schedule')} />
+          )}
 
         </main>
       </div>
