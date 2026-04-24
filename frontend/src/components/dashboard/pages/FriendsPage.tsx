@@ -40,7 +40,9 @@ const FriendsPage: React.FC = () => {
   const viewProfile = async (id: number) => {
     try {
       const token = localStorage.getItem('access_token');
+
       const res = await axios.get(`${API_BASE_URL}/api/user/profile/${id}/`, {
+
         headers: { Authorization: `Token ${token}` }
       });
       setSelectedFriend(res.data);

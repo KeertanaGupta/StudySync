@@ -7,7 +7,7 @@ import {
   Home, Calendar, Users, BookOpen, Bell, Settings, 
   Search, Sun, Moon, User, Layout, SearchCode, Video, PlusCircle
 } from 'lucide-react';
-import './Dashboard.css';
+import './dashboard.css';
 import SessionList from "../sessions/SessionList";
 import CreateSession from "../sessions/CreateSession";
 
@@ -57,6 +57,7 @@ export const Dashboard = () => {
   const fetchSkills = async () => {
     try {
       const token = localStorage.getItem('access_token');
+
       const res = await axios.get(`${API_BASE_URL}/api/skills/`, {
         headers: { 'Authorization': `Token ${token}` }
       });
@@ -70,7 +71,9 @@ export const Dashboard = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem('access_token');
+
         const res = await axios.get(`${API_BASE_URL}/api/user/profile/`, {
+
           headers: { 'Authorization': `Token ${token}` }
         });
         setProfileData(res.data);
@@ -90,7 +93,9 @@ export const Dashboard = () => {
     if (!newSkillStr.trim()) return;
     try {
       const token = localStorage.getItem('access_token');
+
       await axios.post(`${API_BASE_URL}/api/skills/`, 
+
         { name: newSkillStr },
         { headers: { 'Authorization': `Token ${token}` } }
       );

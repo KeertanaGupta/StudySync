@@ -21,7 +21,9 @@ export const SettingsPage = ({ isDarkMode, setIsDarkMode }: SettingsPageProps) =
     try {
       const token = localStorage.getItem('access_token');
       // Update backend
+
       await axios.patch(`${API_BASE_URL}/api/user/profile/`, {
+
         username: displayName, 
         institution: institution
       }, {

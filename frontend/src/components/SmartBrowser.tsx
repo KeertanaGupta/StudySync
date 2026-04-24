@@ -25,6 +25,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
   useEffect(() => {
     const startProctoring = async () => {
       try {
+
         // 1. Request Camera Access
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         streamRef.current = stream;
@@ -35,6 +36,19 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
         // 2. Request Fullscreen (Might fail if not user-initiated, caught silently)
         if (document.documentElement.requestFullscreen) {
           document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen blocked:", err));
+
+        const token = localStorage.getItem('access_token');
+        // We match your backend expectation: { skill: "Python" }
+        const res = await axios.post('/api/quiz/generate/', 
+          { skill: skillsToTest[0] },
+          { headers: { 'Authorization': `Token ${token}` } }
+        );
+        
+        if (res.data.questions && res.data.questions.length > 0) {
+          setQuestions(res.data.questions);
+        } else {
+          throw new Error("No questions generated");
+
         }
       } catch (err) {
         // 🚨 FIX 1: Removed onCancel() so the app doesn't close if camera is blocked/denied
@@ -141,7 +155,12 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
 
     try {
       const token = localStorage.getItem('access_token');
+
       await axios.post(`${API_BASE_URL}/api/quiz/submit/`, {
+
+      // Sending results to your SubmitQuizView
+      await axios.post('/api/quiz/submit/', {
+
         skill: skillsToTest[0],
         correct_count: correctCount,
         total: questions.length

@@ -11,7 +11,9 @@ export const AuthCard = ({ onBack }: { onBack?: () => void }) => {
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
+
         const res = await axios.post(`${API_BASE_URL}/api/auth/google/`, {
+
           access_token: tokenResponse.access_token,
         });
 

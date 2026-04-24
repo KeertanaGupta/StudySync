@@ -1,3 +1,4 @@
+
 # Render Blueprint — StudySync Backend
 # https://docs.render.com/infrastructure-as-code
 
@@ -14,11 +15,13 @@ services:
     plan: free
     buildCommand: "./build.sh"
     startCommand: "cd backend && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT"
+
     envVars:
       - key: DATABASE_URL
         fromDatabase:
           name: studysync-db
           property: connectionString
+
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
@@ -26,6 +29,7 @@ services:
       - key: DJANGO_SETTINGS_MODULE
         value: core.settings
       - key: GEMINI_API_KEY
+
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
@@ -39,5 +43,9 @@ services:
         sync: false
       - key: LIVEKIT_API_SECRET
         sync: false
-      - key: OPENROUTER_API_KEY
-        sync: false
+
+
+
+
+
+

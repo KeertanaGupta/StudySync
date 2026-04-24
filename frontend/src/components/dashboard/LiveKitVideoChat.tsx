@@ -92,7 +92,7 @@ export const LiveKitVideoChat = ({ sessionId, onLeave }: LiveKitVideoChatProps) 
                 </div>
             </div>
             
-            <div className="video-frame-wrapper" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'hidden', border: '4px solid black', boxSshadow: '8px 8px 0 black', display: 'flex' }}>
+            <div className="video-frame-wrapper" style={{ flex: 1, padding: 0, position: 'relative', overflow: 'hidden', border: '4px solid black', boxShadow: '8px 8px 0 black', display: 'flex' }}>
                 <LiveKitRoom
                     video={true}
                     audio={true}
