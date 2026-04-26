@@ -154,6 +154,22 @@ class ManageUserSkillsAPIView(APIView):
         serializer = UserSkillSerializer(user_skill)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def delete(self, request):
+        skill_name = request.query_params.get('name')
+        if not skill_name:
+            # Maybe it's in the body
+            skill_name = request.data.get('name')
+            
+        if not skill_name:
+            return Response({"error": "Skill name is required."}, status=status.HTTP_400_BAD_REQUEST)
+            
+        try:
+            skill_obj = Skill.objects.get(name__iexact=skill_name.strip())
+            UserSkill.objects.filter(user=request.user, skill=skill_obj).delete()
+            return Response({"message": "Skill removed successfully."}, status=status.HTTP_200_OK)
+        except Skill.DoesNotExist:
+            return Response({"error": "Skill not found."}, status=status.HTTP_404_NOT_FOUND)
+
 class UserSkillListView(APIView):
     permission_classes = [IsAuthenticated]
 

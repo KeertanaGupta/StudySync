@@ -9,6 +9,7 @@ import { Dashboard } from './components/dashboard/dashboard';
 // ✅ NEW IMPORTS
 import { Routes, Route, useParams } from "react-router-dom";
 import JoinSession from "./components/sessions/JoinSession";
+import { Busted } from "./components/Busted";
 import { Toaster } from 'sonner';
 
 // ✅ WRAPPER (for dynamic id)
@@ -55,6 +56,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/session/:id" element={<JoinWrapper />} />
+            <Route path="/busted" element={<Busted />} />
           </Routes>
         )}
 

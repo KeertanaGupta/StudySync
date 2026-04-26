@@ -24,9 +24,9 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
       <nav className="nb-navbar">
         <div className="nb-logo">
           <span className="nb-logo-icon">{"{}"}</span>
-          <span>StudySync AI</span>
+          <span>StudySync</span>
         </div>
-        
+
         <div className="nb-nav-links">
           <a href="#features">Features</a>
           <a href="#how-it-works">How it works</a>
@@ -48,9 +48,9 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
         <div className="nb-badge">
           ✨ Powered by next-gen learning AI
         </div>
-        
+
         <h1>
-          AI-powered study groups<br/>that actually work
+          AI-powered study groups<br />that actually work
         </h1>
 
         <p>
@@ -76,7 +76,7 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
       {/* FEATURES SECTION */}
       <section id="features" className="nb-section">
         <div className="section-label">Features</div>
-        <h2 className="section-title">Everything a study group<br/>should be</h2>
+        <h2 className="section-title">Everything a study group<br />should be</h2>
         <p className="section-subtitle">
           Four core systems working together to make group learning the most effective part of your week.
         </p>
@@ -108,8 +108,8 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
       {/* HOW IT WORKS SECTION */}
       <section id="how-it-works" className="nb-section">
         <div className="section-label">How it works</div>
-        <h2 className="section-title">From signup to first<br/>session in minutes</h2>
-        
+        <h2 className="section-title">From signup to first<br />session in minutes</h2>
+
         <div className="timeline">
           <div className="timeline-step">
             <div className="step-icon">
@@ -141,7 +141,7 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
       {/* REVIEWS SECTION */}
       <section id="reviews" className="nb-section">
         <div className="section-label">Loved by students</div>
-        <h2 className="section-title">Real stories, real<br/>results</h2>
+        <h2 className="section-title">Real stories, real<br />results</h2>
 
         <div className="reviews-grid">
           <div className="nb-card">
@@ -183,12 +183,12 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
       {/* BOTTOM CTA */}
       <section className="nb-section">
         <div className="cta-banner">
-          <h2>Ready to study<br/>like it's 2030?</h2>
+          <h2>Ready to study<br />like it's 2030?</h2>
           <p>Join thousands of students already learning faster with AI-matched groups. Free to start.</p>
           <div className="nb-cta-group" style={{ marginBottom: 0 }}>
             {/* Linked to Auth flow! */}
             <button className="nb-btn-primary" onClick={onLoginClick}>GET STARTED FREE →</button>
-            <button className="nb-btn-secondary" style={{ background: '#fef3c7' }}>Talk to sales</button>
+            <button className="nb-btn-secondary" style={{ background: '#fef3c7', color: '#0f172a' }}>Talk to sales</button>
           </div>
         </div>
       </section>
@@ -208,7 +208,7 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
             <a href="#">📸</a>
           </div>
         </div>
-        
+
         <div className="footer-col">
           <h4>Product</h4>
           <a href="#">Features</a>
@@ -216,7 +216,7 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
           <a href="#">Pricing</a>
           <a href="#">Changelog</a>
         </div>
-        
+
         <div className="footer-col">
           <h4>Company</h4>
           <a href="#">About</a>
@@ -224,7 +224,7 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
           <a href="#">Careers</a>
           <a href="#">Press</a>
         </div>
-        
+
         <div className="footer-col">
           <h4>Resources</h4>
           <a href="#">Docs</a>

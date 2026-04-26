@@ -62,7 +62,20 @@ export const Dashboard = () => {
       });
       setSkills(res.data);
     } catch (err) {
-      console.error("Failed to load skills", err);
+      console.error("Failed to fetch skills:", err);
+    }
+  };
+
+  const handleDeleteSkill = async (skillName: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.delete(`${API_BASE_URL}/api/skills/?name=${encodeURIComponent(skillName)}`, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      fetchSkills();
+      toast.success('Skill removed');
+    } catch (err) {
+      toast.error('Failed to remove skill');
     }
   };
 
@@ -307,16 +320,28 @@ export const Dashboard = () => {
                   {skills.map((skill) => {
                     const colorClass = skill.is_verified ? `level-${skill.level}` : 'level-unverified';
                     return (
-                      <div key={skill.id} className={`skill-tag ${colorClass}`}>
+                      <div key={skill.id} className={`skill-tag ${colorClass}`} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {skill.name}
                         {!skill.is_verified && (
                           <button 
                             className="verify-btn"
-                            onClick={() => setTestingSkill(skill.name)}
+                            onClick={() => {
+                              if (document.documentElement.requestFullscreen) {
+                                document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen blocked:", e));
+                              }
+                              setTestingSkill(skill.name);
+                            }}
                           >
                             VERIFY
                           </button>
                         )}
+                        <button 
+                          onClick={() => handleDeleteSkill(skill.name)}
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.6, padding: '0 4px', fontSize: '1.2rem', lineHeight: 1 }}
+                          title="Delete skill"
+                        >
+                          &times;
+                        </button>
                       </div>
                     );
                   })}

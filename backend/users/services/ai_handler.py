@@ -27,7 +27,7 @@ def fetch_ai_quiz(skills_list):
     response = requests.post(url, headers={'Content-Type': 'application/json'}, json=payload)
     
     if response.status_code != 200:
-        raise Exception(f"Gemini Error: {response.status_code}")
+        raise Exception(f"Gemini Error {response.status_code}: {response.text}")
 
     res_data = response.json()
     

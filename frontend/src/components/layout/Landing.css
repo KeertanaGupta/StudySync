@@ -1,7 +1,8 @@
 /* Landing.css */
 
 :root {
-  --neo-bg: #fffceb; /* The faint yellow cream color */
+  --neo-bg: #fffceb;
+  /* The faint yellow cream color */
   --neo-black: #0f172a;
   --neo-white: #ffffff;
   --neo-border: 3px solid var(--neo-black);
@@ -9,12 +10,22 @@
   --neo-shadow-hover: 2px 2px 0px var(--neo-black);
 }
 
+.dark-theme {
+  --neo-bg: #1e293b;
+  --neo-black: #f8fafc;
+  --neo-white: #0f172a;
+  --neo-border: 3px solid var(--neo-black);
+  --neo-shadow: 6px 6px 0px #0f172a;
+  --neo-shadow-hover: 2px 2px 0px #0f172a;
+}
+
 .landing-page {
   background-color: var(--neo-bg);
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-  background-size: 40px 40px; /* The graph paper grid effect */
+  background-size: 40px 40px;
+  /* The graph paper grid effect */
   color: var(--neo-black);
   font-family: 'Inter', sans-serif;
   min-height: 100vh;
@@ -27,7 +38,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 5%;
-  border-bottom: 1px solid rgba(0,0,0,0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .nb-logo {
@@ -69,7 +80,7 @@
 }
 
 .theme-toggle {
-  background: var(--white);
+  background: var(--neo-white);
   border: var(--neo-border);
   width: 40px;
   height: 40px;
@@ -78,6 +89,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 2px 2px 0 var(--neo-black);
+  color: var(--neo-black);
 }
 
 .nb-btn-text {
@@ -85,6 +97,7 @@
   border: none;
   font-weight: bold;
   cursor: pointer;
+  color: var(--neo-black);
 }
 
 .nb-btn-black {
@@ -106,7 +119,7 @@
 
 .nb-badge {
   display: inline-block;
-  background: var(--white);
+  background: var(--neo-white);
   border: var(--neo-border);
   padding: 8px 16px;
   border-radius: 50px;
@@ -166,7 +179,8 @@
   transition: all 0.1s;
 }
 
-.nb-btn-primary:active, .nb-btn-secondary:active {
+.nb-btn-primary:active,
+.nb-btn-secondary:active {
   transform: translate(4px, 4px);
   box-shadow: var(--neo-shadow-hover);
 }
@@ -340,7 +354,7 @@
 .step-icon {
   width: 80px;
   height: 80px;
-  background: var(--white);
+  background: var(--neo-white);
   border: var(--neo-border);
   border-radius: 50%;
   display: flex;
@@ -357,7 +371,7 @@
   top: -5px;
   right: -5px;
   background: var(--neo-black);
-  color: var(--white);
+  color: var(--neo-white);
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -388,6 +402,10 @@
   text-align: center;
   margin: 100px auto;
   max-width: 1000px;
+}
+
+.dark-theme .cta-banner {
+  background: linear-gradient(135deg, var(--neo-bg) 0%, var(--neo-white) 100%);
 }
 
 .cta-banner h2 {
@@ -449,7 +467,7 @@
 
 .footer-bottom {
   grid-column: 1 / -1;
-  border-top: 1px solid rgba(0,0,0,0.1);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
   margin-top: 40px;
   padding-top: 20px;
   display: flex;
@@ -465,11 +483,34 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .nb-hero h1 { font-size: 3rem; }
-  .features-grid, .reviews-grid, .nb-footer { grid-template-columns: 1fr; }
-  .timeline { flex-direction: column; gap: 40px; }
-  .timeline::before { display: none; }
-  .timeline-step { width: 100%; }
-  .nb-nav-links { display: none; }
-  .cta-banner h2 { font-size: 2.5rem; }
+  .nb-hero h1 {
+    font-size: 3rem;
+  }
+
+  .features-grid,
+  .reviews-grid,
+  .nb-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .timeline::before {
+    display: none;
+  }
+
+  .timeline-step {
+    width: 100%;
+  }
+
+  .nb-nav-links {
+    display: none;
+  }
+
+  .cta-banner h2 {
+    font-size: 2.5rem;
+  }
 }

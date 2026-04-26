@@ -2,6 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
+import * as tf from '@tensorflow/tfjs';
+import * as cocoSsd from '@tensorflow-models/coco-ssd';
 
 interface SmartTestBrowserProps {
   skillsToTest: string[];
@@ -15,6 +18,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const navigate = useNavigate();
   
   // Anti-Cheating States
   const [warnings, setWarnings] = useState(0);
@@ -32,10 +36,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
           videoRef.current.srcObject = stream;
         }
 
-        // 2. Request Fullscreen (Might fail if not user-initiated, caught silently)
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen().catch(err => console.log("Fullscreen blocked:", err));
-        }
+        // 2. Fullscreen is now handled by the VERIFY button click directly to bypass browser blocks
       } catch (err) {
         // 🚨 FIX 1: Removed onCancel() so the app doesn't close if camera is blocked/denied
         toast.warning("Camera access denied. Proctoring disabled for testing.");
@@ -64,7 +65,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
           const newWarnings = w + 1;
           if (newWarnings >= 3) {
             toast.error("TEST ABORTED: Too many tab switches detected.");
-            onCancel(); // 3 strikes and you're out
+            navigate('/busted');
           } else {
             toast.warning(`WARNING: Tab switching detected! (${newWarnings}/3)`);
           }
@@ -76,6 +77,71 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [onCancel]);
+
+  // Fix: Assign stream to video element when it actually mounts (after loading finishes)
+  useEffect(() => {
+    if (!loading && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [loading]);
+
+  // --- 5. AI PHONE DETECTION ---
+  useEffect(() => {
+    let animationFrameId: number;
+    let model: cocoSsd.ObjectDetection;
+    let isDetecting = false;
+    let cooldown = false;
+
+    const runDetection = async () => {
+      // Must have video playing
+      if (!loading && videoRef.current && videoRef.current.readyState === 4) {
+        if (!model) {
+          try {
+            await tf.ready();
+            model = await cocoSsd.load();
+          } catch (e) {
+            console.error("Failed to load TF model:", e);
+            return;
+          }
+        }
+        
+        if (!isDetecting && !cooldown) {
+          isDetecting = true;
+          try {
+            const predictions = await model.detect(videoRef.current);
+            const phoneDetected = predictions.some((p: any) => p.class === 'cell phone');
+            
+            if (phoneDetected) {
+              setWarnings((w: number) => {
+                const newWarnings = w + 1;
+                if (newWarnings >= 3) {
+                  navigate('/busted');
+                } else {
+                  toast.error(`VIOLATION: Cell phone detected! (${newWarnings}/3)`);
+                }
+                return newWarnings;
+              });
+              
+              cooldown = true;
+              setTimeout(() => { cooldown = false; }, 3000);
+            }
+          } catch (e) {
+            console.error("TFJS error", e);
+          }
+          isDetecting = false;
+        }
+      }
+      animationFrameId = requestAnimationFrame(runDetection);
+    };
+
+    if (!loading) {
+      runDetection();
+    }
+
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    };
+  }, [loading, navigate]);
 
   // --- 3. FETCH QUESTIONS ---
   useEffect(() => {
@@ -205,7 +271,7 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
         {/* Anti-Cheat Warning Display */}
         {warnings > 0 && (
           <div style={{ background: '#ef4444', color: 'white', padding: '10px', textAlign: 'center', fontWeight: 'bold', border: '4px solid #000', marginBottom: '20px' }}>
-            ⚠️ WARNING: TAB SWITCH DETECTED. STRIKES: {warnings}/3
+            ⚠️ WARNING: VIOLATION DETECTED. STRIKES: {warnings}/3
           </div>
         )}
 
