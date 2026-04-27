@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .services.ai_handler import fetch_ai_quiz
+from .services.ai_handler import fetch_ai_quiz, fetch_session_summary
 import traceback
 from rest_framework import status
 from .models import UserSkill, Skill
@@ -73,3 +73,25 @@ class SubmitQuizAPIView(APIView):
             
         except Skill.DoesNotExist:
             return Response({"error": "Skill not found in database."}, status=status.HTTP_404_NOT_FOUND)
+
+class GenerateSessionSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        transcript = request.data.get('transcript', '')
+        
+        if not transcript or len(transcript.strip()) < 10:
+            return Response({"error": "Transcript too short to summarize."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            result = fetch_session_summary(transcript)
+            return Response(result, status=status.HTTP_200_OK)
+        except Exception as e:
+            error_msg = str(e)
+            print(f"--- AI CRASH: {error_msg} ---")
+            
+            if "429" in error_msg or "Quota" in error_msg:
+                return Response({"error": "API Quota Reached. Please wait a minute."}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+                
+            traceback.print_exc()
+            return Response({"error": error_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

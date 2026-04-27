@@ -10,6 +10,7 @@ import {
 import './Dashboard.css';
 import SessionList from "../sessions/SessionList";
 import CreateSession from "../sessions/CreateSession";
+import { JoinSessionModal } from "../sessions/JoinSessionModal";
 
 // Pages
 import { SchedulePage } from "./pages/SchedulePage";
@@ -33,12 +34,14 @@ export const Dashboard = () => {
   // State
   const [profileData, setProfileData] = useState<any>(null);
   const [skills, setSkills] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const [newSkillStr, setNewSkillStr] = useState("");
   const [testingSkill, setTestingSkill] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [showCreateSession, setShowCreateSession] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,6 +66,30 @@ export const Dashboard = () => {
       setSkills(res.data);
     } catch (err) {
       console.error("Failed to fetch skills:", err);
+    }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await axios.get(`${API_BASE_URL}/api/study/notifications/`, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      setNotifications(res.data);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.post(`${API_BASE_URL}/api/study/notifications/mark_all_read/`, {}, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      fetchNotifications();
+    } catch (err) {
+      console.error("Failed to mark read:", err);
     }
   };
 
@@ -96,6 +123,7 @@ export const Dashboard = () => {
 
     fetchProfile();
     fetchSkills();
+    fetchNotifications();
   }, []);
 
   const handleAddSkill = async (e: FormEvent) => {
@@ -130,6 +158,17 @@ export const Dashboard = () => {
           }}
         />
       )}
+
+      <JoinSessionModal 
+        isOpen={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        userName={user?.name || user?.username || "Student"}
+        onJoin={(id) => {
+          setSelectedSessionId(id);
+          setCurrentPage('video-chat');
+          setShowJoinModal(false);
+        }}
+      />
 
       <div className="dash-wrapper">
         
@@ -217,7 +256,7 @@ export const Dashboard = () => {
             <>
               {/* Welcome Text */}
               <div className="welcome-header">
-                <h1>Welcome back, {user?.name?.split(' ')[0] || "Student"}! 👋</h1>
+                <h1>Welcome back, {user?.first_name || user?.username || "Student"}! :D</h1>
                 <p>Here's what's happening with your Study DNA and Arsenal today.</p>
               </div>
 
@@ -246,19 +285,19 @@ export const Dashboard = () => {
           </div>
 
           {/* Quick Actions */}
-          <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>⚡ Quick Actions</div>
+          <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>:v Quick Actions</div>
           <div className="quick-actions-grid">
             <div className="action-card" onClick={() => setCurrentPage('matches')} style={{ cursor: 'pointer' }}>
               <div className="action-icon"><SearchCode size={24}/></div>
               <h3 style={{ margin: '0 0 5px 0' }}>Find a Match</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Discover new study partners</p>
             </div>
-            <div className="action-card dark">
+            <div className="action-card dark" onClick={() => setShowJoinModal(true)} style={{ cursor: 'pointer' }}>
               <div className="action-icon"><Video size={24}/></div>
               <h3 style={{ margin: '0 0 5px 0' }}>Join Session</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Enter active study room</p>
             </div>
-            <div className="action-card">
+            <div className="action-card" onClick={() => setCurrentPage('groups')} style={{ cursor: 'pointer' }}>
               <div className="action-icon"><PlusCircle size={24}/></div>
               <h3 style={{ margin: '0 0 5px 0' }}>Create Group</h3>
               <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Start your own study circle</p>
@@ -268,7 +307,7 @@ export const Dashboard = () => {
 <div style={{ marginTop: "30px" }}>
   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: '15px' }}>
     <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>
-       🎥 GROUP STUDY SESSIONS
+       +__+ GROUP STUDY SESSIONS
     </div>
     <button className="nb-btn primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }} onClick={() => setShowCreateSession(!showCreateSession)}>
       {showCreateSession ? 'CANCEL' : 'LAUNCH NEW SESSION'}
@@ -289,11 +328,12 @@ export const Dashboard = () => {
   </div>
 </div>
           {/* Bottom Split Area */}
+          <br></br>
           <div className="bottom-split-grid">
             
             {/* Left: Technical Arsenal */}
             <div>
-              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>🛠️ Technical Arsenal</div>
+              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>~/ Technical Arsenal</div>
               <div className="neo-card">
                 
                 <div className="skill-legend">
@@ -351,24 +391,26 @@ export const Dashboard = () => {
 
             {/* Right: Notifications / Recent */}
             <div>
-              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
-                <span>🔔 Notifications</span>
-                <span style={{ fontSize: '0.8rem', cursor: 'pointer', opacity: 0.6 }}>Mark all read</span>
+              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>[ Notifications ]</span>
+                <span onClick={handleMarkAllRead} style={{ fontSize: '0.8rem', cursor: 'pointer', opacity: 0.6, fontWeight: 'normal' }}>Mark all read</span>
               </div>
               
-              <div className="neo-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                <div style={{ borderBottom: '2px dashed rgba(0,0,0,0.1)', paddingBottom: '15px' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>Alex sent you a message</div>
-                  <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>10 mins ago</div>
-                </div>
-                <div style={{ borderBottom: '2px dashed rgba(0,0,0,0.1)', paddingBottom: '15px' }}>
-                  <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>New high-compatibility match!</div>
-                  <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>2 hours ago</div>
-                </div>
-                <div>
-                  <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#16a34a' }}>Skill Verified: Advanced</div>
-                  <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>Yesterday</div>
-                </div>
+              <div className="neo-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '20px' }}>
+                {notifications.filter(n => !n.is_read).length === 0 ? (
+                  <div style={{ opacity: 0.6, textAlign: 'center', padding: '20px 0' }}>No new notifications.</div>
+                ) : (
+                  notifications.filter(n => !n.is_read).slice(0, 4).map((notif, idx) => (
+                    <div key={notif.id} style={{ borderBottom: idx < notifications.filter(n => !n.is_read).slice(0, 4).length - 1 ? '2px dashed rgba(0,0,0,0.1)' : 'none', paddingBottom: idx < notifications.filter(n => !n.is_read).slice(0, 4).length - 1 ? '15px' : '0' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: notif.notif_type === 'match' ? '#16a34a' : 'inherit' }}>
+                        {notif.message}
+                      </div>
+                      <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>
+                        {new Date(notif.created_at).toLocaleDateString()} at {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

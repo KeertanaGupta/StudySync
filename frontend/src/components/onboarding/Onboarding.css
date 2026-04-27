@@ -3,79 +3,113 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 80vh;
-  padding: 20px;
+  min-height: 100vh;
+  padding: 40px;
+  background-color: #fdf8e1;
+  background-image: linear-gradient(to right, #80808012 1px, transparent 1px), linear-gradient(to bottom, #80808012 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .ob-card {
-  background: var(--white);
-  border: 4px solid var(--black);
-  box-shadow: var(--hero-shadow);
-  padding: 40px;
-  max-width: 600px;
+  background: white;
+  border: 8px solid #000;
+  box-shadow: 20px 20px 0px 0px #000;
+  padding: 60px 40px;
+  max-width: 700px;
   width: 100%;
   text-align: center;
+  border-radius: 40px;
+  position: relative;
+  overflow: hidden;
 }
 
 .ob-progress {
   width: 100%;
-  height: 20px;
-  background: #eee;
-  border: 2px solid var(--black);
-  margin-bottom: 30px;
+  height: 24px;
+  background: #f1f5f9;
+  border: 4px solid #000;
+  margin-bottom: 40px;
   position: relative;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .ob-progress-fill {
   height: 100%;
-  background: #fde047; /* Bright Yellow */
-  border-right: 2px solid var(--black);
-  transition: width 0.3s ease;
+  background: #fde047;
+  border-right: 4px solid #000;
+  transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .ob-title {
-  font-size: 2rem;
-  font-weight: 900;
-  margin-bottom: 30px;
+  font-size: 2.5rem;
+  font-weight: 950;
+  margin-bottom: 40px;
   text-transform: uppercase;
+  letter-spacing: -0.05em;
+  color: #000;
 }
 
 .ob-options-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 25px;
 }
 
 .ob-option-btn {
-  background: var(--white);
-  border: 3px solid var(--black);
-  padding: 20px;
+  background: white;
+  border: 4px solid #000;
+  padding: 30px;
+  font-size: 1.1rem;
   font-weight: 900;
+  text-transform: uppercase;
   cursor: pointer;
-  box-shadow: var(--hard-shadow);
+  box-shadow: 8px 8px 0px 0px #000;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  transition: 0.1s;
+  gap: 15px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 20px;
 }
 
 .ob-option-btn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px var(--black);
-  background-color: var(--bg-yellow);
+  transform: translate(4px, 4px);
+  box-shadow: 4px 4px 0px 0px #000;
+  background-color: #fef08a;
+}
+
+.ob-option-btn:active {
+  transform: translate(8px, 8px);
+  box-shadow: 0px 0px 0px 0px #000;
 }
 
 .ob-option-btn span {
-  font-size: 2rem;
+  font-size: 3rem;
+  filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.1));
 }
 
-/* Loading Spinner for when we save to Django */
+.ob-input {
+  width: 100%;
+  padding: 20px;
+  border: 4px solid #000;
+  border-radius: 15px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  box-shadow: 6px 6px 0px 0px #000;
+  outline: none;
+  background: #fff;
+}
+
+.ob-input:focus {
+  background: #fef9c3;
+}
+
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--black);
-  border-top: 4px solid transparent;
+  width: 60px;
+  height: 60px;
+  border: 8px solid #000;
+  border-top: 8px solid #fbbf24;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 20px auto;

@@ -38,8 +38,8 @@ export const AuthCard = ({ onBack }: { onBack?: () => void }) => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-header">Welcome Back</h1>
-        <p className="auth-subtitle">Sign in to find your perfect study group.</p>
+        <h1 className="auth-header">LOCK IN</h1>
+        <p className="auth-subtitle">Level up your study game with the ultimate squad.</p>
 
         {/* 🚀 Our newly styled custom button triggering the Google hook */}
         <button className="neo-google-btn" onClick={() => googleLogin()}>

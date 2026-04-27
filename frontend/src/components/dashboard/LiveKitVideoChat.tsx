@@ -13,8 +13,11 @@ interface TranscriptionSegment {
     participant?: any;
 }
 import '@livekit/components-styles';
-import { Loader2, X, MessageSquare, BookOpen, Quote, Sparkles, Brain, ChevronRight } from 'lucide-react';
+import { Loader2, X, MessageSquare, BookOpen, Quote, Sparkles, Brain, ChevronRight, CheckSquare } from 'lucide-react';
 import { getLiveKitToken } from '../../services/sessionApi';
+import axios from 'axios';
+import { API_BASE_URL } from '../../config/api';
+import { toast } from 'sonner';
 
 interface TranscriptionMessage {
     id: string;
@@ -116,6 +119,29 @@ export const LiveKitVideoChat = ({ sessionId, onLeave }: LiveKitVideoChatProps) 
 const TranscriptionSidebar = () => {
     const room = useRoomContext();
     const [messages, setMessages] = useState<TranscriptionMessage[]>([]);
+    const [isSummarizing, setIsSummarizing] = useState(false);
+    const [summaryData, setSummaryData] = useState<{summary: string, tasks: string[]} | null>(null);
+
+    const handleExportNotes = async () => {
+        if (messages.length === 0) {
+            toast.error("No transcription data to summarize yet.");
+            return;
+        }
+        setIsSummarizing(true);
+        try {
+            const transcript = messages.map(m => `${m.participant}: ${m.text}`).join('\n');
+            const token = localStorage.getItem('access_token');
+            const res = await axios.post(`${API_BASE_URL}/api/session/summary/`, { transcript }, {
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            setSummaryData(res.data);
+            toast.success('Study notes generated!');
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to generate notes. Need more conversation data.');
+        }
+        setIsSummarizing(false);
+    };
 
     useEffect(() => {
         const handleTranscription = (segments: TranscriptionSegment[]) => {
@@ -262,13 +288,41 @@ const TranscriptionSidebar = () => {
                         </div>
                     ))
                 )}
+                
+                {summaryData && (
+                    <div className="animate-in fade-in slide-in-from-bottom-2" style={{ 
+                        background: '#f0fdf4', border: '3px solid black', padding: '15px', 
+                        boxShadow: '4px 4px 0 black', marginTop: '10px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                            <Brain size={18} className="text-green-600" />
+                            <h4 style={{ margin: 0, fontWeight: 900, fontSize: '0.8rem' }}>AI SESSION SUMMARY</h4>
+                        </div>
+                        <p style={{ fontSize: '0.85rem', lineHeight: '1.4', marginBottom: '15px' }}>{summaryData.summary}</p>
+                        
+                        <h4 style={{ margin: '0 0 10px 0', fontWeight: 900, fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <CheckSquare size={16} /> ACTION ITEMS
+                        </h4>
+                        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.85rem' }}>
+                            {summaryData.tasks.map((task, i) => (
+                                <li key={i} style={{ marginBottom: '5px' }}>{task}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
                 {/* Scroll Anchor */}
                 <div id="transcript-bottom" />
             </div>
             
             <div style={{ padding: '20px', borderTop: '4px solid black', background: '#f8fafc' }}>
-                <button className="nb-btn primary w-full" style={{ width: '100%', fontSize: '0.75rem' }}>
-                    <BookOpen size={16} /> EXPORT STUDY NOTES
+                <button 
+                    onClick={handleExportNotes} 
+                    disabled={isSummarizing || messages.length === 0}
+                    className="nb-btn primary w-full" 
+                    style={{ width: '100%', fontSize: '0.75rem', opacity: isSummarizing ? 0.7 : 1 }}
+                >
+                    {isSummarizing ? <Loader2 className="animate-spin" size={16} /> : <BookOpen size={16} />} 
+                    {isSummarizing ? ' GENERATING SUMMARY...' : ' EXPORT STUDY NOTES'}
                 </button>
             </div>
         </div>

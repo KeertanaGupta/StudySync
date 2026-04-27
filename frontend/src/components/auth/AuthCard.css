@@ -10,66 +10,72 @@
   /* background-color: var(--neo-bg);
   background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 40px 40px; */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
 }
 
 .auth-card {
-  background: var(--white);
-  border: 4px solid var(--neo-black, #0f172a);
-  box-shadow: 12px 12px 0 var(--neo-black, #0f172a);
-  padding: 50px 40px;
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
-  border-radius: 12px;
+    background: var(--white);
+    border: 4px solid var(--neo-black, #0f172a);
+    box-shadow: 12px 12px 0 var(--neo-black, #0f172a);
+    padding: 50px 40px;
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    border-radius: 12px;
 }
 
 .auth-header {
-  font-size: 2.5rem;
-  font-weight: 900;
-  margin-bottom: 10px;
-  letter-spacing: -1px;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #000;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.05em;
 }
 
 .auth-subtitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.95rem;
-  color: #64748b;
-  margin-bottom: 40px;
+    font-size: 1.1rem;
+    color: #4b5563;
+    font-weight: 700;
+    margin-bottom: 2.5rem;
 }
 
 /* The Custom Google Button */
 .neo-google-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  width: 100%;
-  background: var(--white);
-  color: black;
-  border: 3px solid black;
-  padding: 15px 20px;
-  font-size: 1.1rem;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 5px 5px 0 black;
-  transition: all 0.1s ease-in-out;
-  border-radius: 8px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 1.2rem;
+    font-size: 1.2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    background-color: #fff;
+    border: 4px solid #000;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    box-shadow: 8px 8px 0px 0px rgba(0, 0, 0, 1);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .neo-google-btn:hover {
-  transform: translate(3px, 3px);
-  box-shadow: 2px 2px 0 black;
-  background: #f8fafc;
+    transform: translate(4px, 4px);
+    box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 1);
+    background-color: #f3f4f6;
 }
 
 .neo-google-btn:active {
-  transform: translate(5px, 5px);
-  box-shadow: 0px 0px 0 black;
+    transform: translate(8px, 8px);
+    box-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 1);
 }
 
 .google-icon {
-  width: 24px;
-  height: 24px;
+    width: 28px;
+    height: 28px;
 }
 
 .back-link {

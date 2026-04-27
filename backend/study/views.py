@@ -118,6 +118,11 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         notification.save()
         return Response({'status': 'marked as read'}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['post'])
+    def mark_all_read(self, request):
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return Response({'status': 'all marked as read'}, status=status.HTTP_200_OK)
+
 class StudyGroupViewSet(viewsets.ModelViewSet):
     serializer_class = StudyGroupSerializer
     permission_classes = [permissions.IsAuthenticated]
