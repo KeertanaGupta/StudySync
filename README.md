@@ -5,7 +5,7 @@ StudySync is a state-of-the-art platform designed to transform how students coll
 ![Premium Design](https://img.shields.io/badge/Aesthetics-Neubrutalist-ff6b6b?style=for-the-badge)
 ![Tech Stack](https://img.shields.io/badge/Backend-Django_&_FastAPI-092E20?style=for-the-badge&logo=django)
 ![Tech Stack](https://img.shields.io/badge/Frontend-React_&_TypeScript-61DAFB?style=for-the-badge&logo=react)
-![AI Engine](https://img.shields.io/badge/AI-Google_Gemini_1.5-blue?style=for-the-badge&logo=google-cloud)
+![AI Engine](https://img.shields.io/badge/AI-Google_Gemini_2.5-blue?style=for-the-badge&logo=google-cloud)
 
 ---
 
