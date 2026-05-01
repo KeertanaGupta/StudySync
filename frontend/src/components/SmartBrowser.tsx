@@ -38,9 +38,9 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
 
         // 2. Fullscreen is now handled by the VERIFY button click directly to bypass browser blocks
       } catch (err) {
-        // 🚨 FIX 1: Removed onCancel() so the app doesn't close if camera is blocked/denied
-        toast.warning("Camera access denied. Proctoring disabled for testing.");
-        console.warn("Camera Error:", err);
+        toast.error("Camera access is required to take this test!");
+        onCancel();
+        return;
       }
     };
 
@@ -85,16 +85,53 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
     }
   }, [loading]);
 
-  // --- 5. AI PHONE DETECTION ---
+  // --- 5. AI PHONE DETECTION & BLACK SCREEN DETECTION ---
   useEffect(() => {
     let animationFrameId: number;
     let model: cocoSsd.ObjectDetection;
     let isDetecting = false;
     let cooldown = false;
+    
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
     const runDetection = async () => {
       // Must have video playing
       if (!loading && videoRef.current && videoRef.current.readyState === 4) {
+        // Check for black screen / covered camera
+        if (ctx && !cooldown) {
+          canvas.width = videoRef.current.videoWidth || 640;
+          canvas.height = videoRef.current.videoHeight || 480;
+          if (canvas.width > 0 && canvas.height > 0) {
+            ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            let colorSum = 0;
+            let sampleCount = 0;
+            // Sample every 4th pixel to improve performance
+            for(let x = 0; x < data.length; x += 16) {
+              colorSum += data[x] + data[x+1] + data[x+2];
+              sampleCount++;
+            }
+            const brightness = (colorSum / sampleCount) / 3;
+            console.log("Camera Brightness:", brightness);
+            
+            if (brightness < 30) { // Covered or extremely dark
+              setWarnings((w: number) => {
+                const newWarnings = w + 1;
+                if (newWarnings >= 3) {
+                  navigate('/busted');
+                } else {
+                  toast.error(`VIOLATION: Camera covered or too dark! (${newWarnings}/3)`);
+                }
+                return newWarnings;
+              });
+              cooldown = true;
+              setTimeout(() => { cooldown = false; }, 3000);
+            }
+          }
+        }
+
         if (!model) {
           try {
             await tf.ready();
@@ -242,6 +279,20 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
         <p style={{ fontFamily: 'monospace', marginTop: '20px', fontWeight: 'bold' }}>
           Configuring Proctor Environment for {skillsToTest[0]}...
         </p>
+
+        {/* Anti-Cheat Rules / Guidelines */}
+        <div style={{ marginTop: '50px', background: '#fff', border: '4px solid #000', padding: '30px', borderRadius: '12px', boxShadow: '8px 8px 0 #000', maxWidth: '700px', width: '100%' }}>
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '20px', textAlign: 'center', textTransform: 'uppercase', color: '#ef4444' }}>
+            ⚠️ Strict Anti-Cheat Rules ⚠️
+          </h2>
+          <ul style={{ fontSize: '1.2rem', fontFamily: 'monospace', fontWeight: 'bold', lineHeight: '1.6', paddingLeft: '20px', color: '#000' }}>
+            <li style={{ marginBottom: '10px' }}>Your webcam <span style={{ color: '#ef4444' }}>MUST</span> be turned on and you must be clearly visible.</li>
+            <li style={{ marginBottom: '10px' }}>Do <span style={{ color: '#ef4444' }}>NOT</span> switch tabs, minimize, or click away from the test window.</li>
+            <li style={{ marginBottom: '10px' }}>Mobile phones and other devices are strictly prohibited and will be detected by AI.</li>
+            <li style={{ marginBottom: '10px' }}>Do <span style={{ color: '#ef4444' }}>NOT</span> cover your camera. A black screen or obscured view will trigger a violation.</li>
+            <li>Accumulating <span style={{ color: '#ef4444', fontSize: '1.4rem' }}>3 strikes</span> will result in immediate test termination.</li>
+          </ul>
+        </div>
       </div>
     );
   }

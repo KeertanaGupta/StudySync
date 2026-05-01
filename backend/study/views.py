@@ -155,41 +155,65 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         group = self.get_object()
         members = group.members.all()
         
-        # Simplified Optimization Algorithm
+        # CSP Approach
+        # Hard constraint: Users must not be in a class (UserAvailability = BUSY)
+        # Soft constraint: Users' preferred study times (availability field)
+        
+        # 1. Build busy sets for each user
+        busy_slots = {m.id: set() for m in members}
         availabilities = UserAvailability.objects.filter(user__in=members)
-        
-        scores = {} # (day, hour) -> [user_ids]
-        
         for avail in availabilities:
             start_hour = avail.start_time.hour
-            # Handle end time (might be midnight or cross hours)
             end_hour = avail.end_time.hour
-            if avail.end_time.minute > 0 or avail.end_time.hour == 0:
-                # If it ends at 00:00, it usually means end of day
-                pass 
-                
-            # Loop through hours
             curr = start_hour
             while curr != end_hour:
-                key = (avail.day_of_week, curr)
-                if key not in scores:
-                    scores[key] = []
-                if avail.user.id not in scores[key]:
-                    scores[key].append(avail.user.id)
+                busy_slots[avail.user.id].add((avail.day_of_week, curr))
                 curr = (curr + 1) % 24
+
+        # 2. Score all possible slots (day 0-6, hour 8-22 for realistic study times)
+        scores = {}
+        for day in range(7):
+            for hour in range(8, 23):
+                slot_score = 0
+                available_count = 0
+                
+                for member in members:
+                    if (day, hour) not in busy_slots[member.id]:
+                        # They are free! (Hard constraint met)
+                        available_count += 1
+                        slot_score += 10 # Base score for being free
+                        
+                        # Soft constraints: Add bonus if it matches preference
+                        pref = member.availability
+                        if pref == 'mornings' and 6 <= hour < 12:
+                            slot_score += 5
+                        elif pref == 'afternoons' and 12 <= hour < 17:
+                            slot_score += 5
+                        elif pref == 'evenings' and 17 <= hour < 22:
+                            slot_score += 5
+                        elif pref == 'weekends' and day in [5, 6]:
+                            slot_score += 5
+                            
+                # Only consider slots where at least someone is available
+                if available_count > 0:
+                    scores[(day, hour)] = {
+                        'score': slot_score,
+                        'available_count': available_count
+                    }
         
-        # Sort by number of users available
-        sorted_slots = sorted(scores.items(), key=lambda x: len(x[1]), reverse=True)
+        # 3. Sort by score (primary) and available count (secondary)
+        sorted_slots = sorted(scores.items(), key=lambda x: (x[1]['score'], x[1]['available_count']), reverse=True)
         
-        # Format suggestions
+        # 4. Format suggestions
         suggestions = []
-        for (day, hour), user_ids in sorted_slots[:5]:
+        for (day, hour), data in sorted_slots[:5]:
             suggestions.append({
                 'day_of_week': day,
                 'day_name': dict(UserAvailability.DAYS_OF_WEEK).get(day),
                 'hour': hour,
-                'count': len(user_ids),
-                'total_members': members.count()
+                'count': data['available_count'],
+                'total_members': members.count(),
+                'score': data['score']
             })
             
         return Response(suggestions)

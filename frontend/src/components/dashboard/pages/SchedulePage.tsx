@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, ChevronLeft, ChevronRight, Video, BookOpen, Users, X, Sparkles, Upload, Wand2, Loader2 } from 'lucide-react';
-import { getSessions, createSession, getGroups, getOptimalSlots, updateAvailability, getAvailability, uploadTimetableOcr, syncGoogleCalendar } from '../../../services/sessionApi';
+import { getSessions, createSession, getGroups, getOptimalSlots, updateAvailability, getAvailability, uploadTimetableOcr, syncGoogleCalendar, createGroupEvent } from '../../../services/sessionApi';
 import { toast } from 'sonner';
 
 interface ScheduleEvent {
@@ -185,6 +185,31 @@ export const SchedulePage = ({ onJoinSession }: SchedulePageProps) => {
 
   const weekDates = getWeekDates();
 
+  const handleAddEvent = async () => {
+    if (!newEvent.title.trim()) {
+      toast.error("Please enter what you are studying.");
+      return;
+    }
+    try {
+      const targetDate = weekDates[newEvent.day].fullDate;
+      const scheduled_time = new Date(`${targetDate}T${String(newEvent.startHour).padStart(2, '0')}:00:00`).toISOString();
+      
+      await createSession({
+        title: newEvent.title,
+        topic: newEvent.title,
+        scheduled_time: scheduled_time,
+        duration: newEvent.duration * 60
+      });
+      toast.success("Study block added successfully!");
+      setShowAddModal(false);
+      setNewEvent({ title: '', day: 0, startHour: 9, duration: 1 });
+      fetchEvents();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add study block.");
+    }
+  };
+
   const getEventsForSlot = (dayIndex: number, hour: number) => {
     const slotDate = weekDates[dayIndex].fullDate;
     return events.filter(e => 
@@ -302,9 +327,22 @@ export const SchedulePage = ({ onJoinSession }: SchedulePageProps) => {
                     className="neo-btn small primary" 
                     style={{ marginTop: '10px', width: '100%' }}
                     onClick={async () => {
-                      // Logic to schedule
-                      toast.success(`Scheduled for ${s.day_name} at ${s.hour}:00`);
-                      setShowOptimizeModal(false);
+                      try {
+                        const colors = ['#bae6fd', '#fef08a', '#bbf7d0', '#fbcfe8', '#c4b5fd'];
+                        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                        
+                        await createGroupEvent(selectedGroupId!, {
+                          title: "Optimal Group Study",
+                          day_of_week: s.day_of_week,
+                          start_hour: s.hour,
+                          duration: 1,
+                          color: randomColor
+                        });
+                        toast.success(`Scheduled for ${s.day_name} at ${s.hour}:00`);
+                        setShowOptimizeModal(false);
+                      } catch (err) {
+                        toast.error("Failed to schedule group event");
+                      }
                     }}
                   >
                     Schedule
@@ -348,7 +386,10 @@ export const SchedulePage = ({ onJoinSession }: SchedulePageProps) => {
             <select className="neo-input" value={newEvent.startHour} onChange={e => setNewEvent({ ...newEvent, startHour: +e.target.value })}>
               {HOURS.map(h => <option key={h} value={h}>{h}:00</option>)}
             </select>
-            <button className="neo-btn primary">Save</button>
+            <select className="neo-input" value={newEvent.duration} onChange={e => setNewEvent({ ...newEvent, duration: +e.target.value })}>
+              {[1, 2, 3, 4, 5].map(h => <option key={h} value={h}>{h} hr{h > 1 ? 's' : ''}</option>)}
+            </select>
+            <button className="neo-btn primary" onClick={handleAddEvent}>Save</button>
           </div>
         </div>
       )}
