@@ -7,7 +7,7 @@ import { Onboarding } from './components/onboarding/Onboarding';
 import { Dashboard } from './components/dashboard/dashboard';
 
 // ✅ NEW IMPORTS
-import { Routes, Route, useParams } from "react-router-dom";
+import { Routes, Route, useParams, Navigate } from "react-router-dom";
 import JoinSession from "./components/sessions/JoinSession";
 import { Busted } from "./components/Busted";
 import { Toaster } from 'sonner';
@@ -26,43 +26,81 @@ function App() {
     initialize();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      setShowAuth(false);
+    }
+  }, [isAuthenticated]);
+
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <div className="app-wrapper">
         <Toaster richColors position="top-right" />
-        
-        {/* 1. NOT LOGGED IN */}
-        {!isAuthenticated && (
-          !showAuth ? (
-            <Landing onLoginClick={() => setShowAuth(true)} />
-          ) : (
-            <div className="ob-container">
-              <AuthCard /> 
-              <button 
-                onClick={() => setShowAuth(false)} 
-                style={{marginTop: '20px', cursor: 'pointer', background: 'none', border: 'none', fontWeight: 'bold'}}
-              >
-                ← Back to Home
-              </button>
-            </div>
-          )
-        )}
 
-        {/* 2. LOGGED IN, INCOMPLETE PROFILE */}
-        {isAuthenticated && !isProfileComplete && <Onboarding />}
+        <Routes>
+          {/* Root Route: Landing Page or Onboarding */}
+          <Route path="/" element={
+            isAuthenticated ? (
+              isProfileComplete ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Onboarding />
+              )
+            ) : (
+              !showAuth ? (
+                <Landing onLoginClick={() => setShowAuth(true)} />
+              ) : (
+                <div className="ob-container">
+                  <AuthCard />
+                  <button
+                    onClick={() => setShowAuth(false)}
+                    style={{ marginTop: '20px', cursor: 'pointer', background: 'none', border: 'none', fontWeight: 'bold' }}
+                  >
+                    ← Back to Home
+                  </button>
+                </div>
+              )
+            )
+          } />
 
-        {/* 3. LOGGED IN & COMPLETE */}
-        {isAuthenticated && isProfileComplete && (
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/session/:id" element={<JoinWrapper />} />
-            <Route path="/busted" element={<Busted />} />
-          </Routes>
-        )}
+          {/* Dashboard Route */}
+          <Route path="/dashboard" element={
+            isAuthenticated ? (
+              isProfileComplete ? (
+                <Dashboard />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
+
+          {/* Session Route */}
+          <Route path="/session/:id" element={
+            isAuthenticated && isProfileComplete ? (
+              <JoinWrapper />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
+
+          {/* Busted Route */}
+          <Route path="/busted" element={
+            isAuthenticated && isProfileComplete ? (
+              <Busted />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          } />
+
+          {/* Catch-all: Redirect to Home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
 
       </div>
     </GoogleOAuthProvider>
   );
 }
 
-export default App;
+export default App;

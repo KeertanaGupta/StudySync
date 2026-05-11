@@ -1,132 +1,135 @@
 import { useState, useEffect } from 'react';
-import { Users, Plus, MessageCircle, Crown, UserPlus, MoreHorizontal, Video, Settings } from 'lucide-react';
-import { getSessions, createSession, joinSession } from '../../../services/sessionApi';
+import { Users, Plus, MessageCircle, Crown, UserPlus, MoreHorizontal, Video, Settings, Search, X, UserMinus } from 'lucide-react';
+import { getGroups, joinSession, createGroup, searchUsers, inviteToGroup, removeFromGroup } from '../../../services/sessionApi';
 import { GroupCalendar } from '../components/GroupCalendar';
+import { GroupChat } from '../components/GroupChat';
 import { useAuthStore } from '../../../store/authStore';
+import { toast } from 'sonner';
 
 interface GroupMember {
   id: number;
-  name: string;
-  role: string;
-  avatar_color: string;
-  online: boolean;
+  username: string;
+  first_name?: string;
+  last_name?: string;
+  profile_picture?: string;
 }
 
 interface StudyGroup {
   id: number;
   name: string;
   description: string;
-  subject: string;
   members: GroupMember[];
-  maxMembers: number;
-  isOwner: boolean;
-  color: string;
-  lastActive: string;
-  sessionsThisWeek: number;
+  creator: number | GroupMember;
+  created_at: string;
+  // UI-only properties (can be derived or defaulted)
+  color?: string;
+  subject?: string;
+  isOwner?: boolean;
 }
 
-const MOCK_GROUPS: StudyGroup[] = [
-  {
-    id: 1, name: 'DSA Warriors', description: 'Solving LeetCode problems daily and prepping for interviews.',
-    subject: 'Data Structures & Algorithms', maxMembers: 8, isOwner: true, color: '#bae6fd',
-    lastActive: '2 hours ago', sessionsThisWeek: 3,
-    members: [
-      { id: 999, name: 'You', role: 'Admin', avatar_color: '#fef08a', online: true },
-      { id: 101, name: 'Aria Chen', role: 'Member', avatar_color: '#bae6fd', online: true },
-      { id: 102, name: 'Marcus J.', role: 'Member', avatar_color: '#bbf7d0', online: false },
-      { id: 103, name: 'Priya S.', role: 'Member', avatar_color: '#fbcfe8', online: true },
-    ]
-  },
-  {
-    id: 2, name: 'React Builders', description: 'Building projects together with React, Next.js, and TypeScript.',
-    subject: 'Web Development', maxMembers: 6, isOwner: false, color: '#fef08a',
-    lastActive: '30 mins ago', sessionsThisWeek: 5,
-    members: [
-      { id: 104, name: 'Lucas M.', role: 'Admin', avatar_color: '#c4b5fd', online: true },
-      { id: 999, name: 'You', role: 'Member', avatar_color: '#fef08a', online: true },
-      { id: 105, name: 'Jin Park', role: 'Member', avatar_color: '#fca5a5', online: false },
-    ]
-  },
-  {
-    id: 3, name: 'ML Study Lab', description: 'Deep dives into machine learning papers and implementations.',
-    subject: 'Machine Learning', maxMembers: 10, isOwner: false, color: '#bbf7d0',
-    lastActive: 'Yesterday', sessionsThisWeek: 2,
-    members: [
-      { name: 'Emma W.', role: 'Admin', avatar_color: '#c4b5fd', online: false },
-      { name: 'You', role: 'Member', avatar_color: '#fef08a', online: true },
-      { name: 'Aria Chen', role: 'Member', avatar_color: '#bae6fd', online: false },
-      { name: 'Jin Park', role: 'Member', avatar_color: '#fca5a5', online: true },
-      { name: 'Marcus J.', role: 'Member', avatar_color: '#bbf7d0', online: false },
-    ]
-  },
-];
-
 export const GroupsPage = () => {
-  const [groups, setGroups] = useState<StudyGroup[]>(MOCK_GROUPS);
+  const [groups, setGroups] = useState<StudyGroup[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<number | null>(null);
+  const [chatGroup, setChatGroup] = useState<{id: number, name: string} | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState<StudyGroup | null>(null);
+  const [showManageModal, setShowManageModal] = useState<StudyGroup | null>(null);
+  
   const [newGroupName, setNewGroupName] = useState('');
-  const [newGroupSubject, setNewGroupSubject] = useState('');
   const [newGroupDesc, setNewGroupDesc] = useState('');
+  
+  const [userSearch, setUserSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<GroupMember[]>([]);
+  
+  const { user } = useAuthStore();
 
-  const loadSessions = async () => {
+  const loadGroups = async () => {
     try {
-      const res = await getSessions();
-      if (res.data && res.data.length > 0) {
-        const dynamicGroups: StudyGroup[] = res.data.map((s: any, idx: number) => ({
-          id: s.id,
-          name: s.title || `Session ${s.id}`,
-          description: s.description || 'Live study session from backend',
-          subject: s.topic || 'General',
-          maxMembers: 10,
-          isOwner: true, 
-          color: ['#bae6fd', '#fef08a', '#bbf7d0', '#fbcfe8'][idx % 4],
-          lastActive: 'Just now',
-          sessionsThisWeek: 1,
-          members: [
-            { id: 999, name: 'You', role: 'Admin', avatar_color: '#fef08a', online: true }
-          ]
-        }));
-        // Use only dynamic groups if available to avoid key collisions
-        setGroups(dynamicGroups);
-      } else {
-        setGroups(MOCK_GROUPS);
-      }
+      const res = await getGroups();
+      const colors = ['#bae6fd', '#fef08a', '#bbf7d0', '#fbcfe8', '#c4b5fd'];
+      setGroups(res.data.map((g: any, idx: number) => ({
+        ...g,
+        color: colors[idx % colors.length],
+        subject: 'General Study', // Backend doesn't have subject yet
+        isOwner: typeof g.creator === 'object' ? g.creator.id === user?.id : g.creator === user?.id,
+        lastActive: 'Just now',
+        sessionsThisWeek: 0
+      })));
     } catch (err) {
-      console.error("Failed to fetch sessions", err);
+      console.error("Failed to fetch groups", err);
     }
   };
 
   useEffect(() => {
-    loadSessions();
+    loadGroups();
   }, []);
-
-  const handleCreateGroup = async () => {
-    if (!newGroupName) return;
-    try {
-      await createSession({
-        title: newGroupName,
-        topic: newGroupSubject || 'General Study',
-        description: newGroupDesc,
-        duration: 60,
-        scheduled_time: new Date().toISOString(),
-      });
-      setShowCreateModal(false);
-      loadSessions(); // Refresh after creation
-    } catch (err) {
-      alert("Failed to create group/session. Make sure the backend is running.");
-    }
-  };
 
   const handleJoinSession = async (groupId: number) => {
     try {
       await joinSession(groupId);
-      // Redirect to video room
       window.location.href = `/session/${groupId}`;
     } catch (err) {
       console.error("Failed to join session", err);
-      // Let's redirect anyway for demo purposes if backend fails joining locally
       window.location.href = `/session/${groupId}`;
+    }
+  };
+
+  const handleCreateGroup = async () => {
+    if (!newGroupName) return;
+    try {
+      await createGroup({
+        name: newGroupName,
+        description: newGroupDesc
+      });
+      setShowCreateModal(false);
+      setNewGroupName('');
+      setNewGroupDesc('');
+      loadGroups();
+      toast.success("Group created!");
+    } catch (err) {
+      toast.error("Failed to create group.");
+    }
+  };
+
+  const handleSearchUsers = async (q: string) => {
+    setUserSearch(q);
+    if (q.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const res = await searchUsers(q);
+      setSearchResults(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleInvite = async (groupId: number, userId: number) => {
+    try {
+      await inviteToGroup(groupId, userId);
+      toast.success("User invited!");
+      loadGroups();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to invite user.");
+    }
+  };
+
+  const handleRemoveMember = async (groupId: number, userId: number) => {
+    if (!window.confirm("Are you sure you want to remove this member?")) return;
+    try {
+      await removeFromGroup(groupId, userId);
+      toast.success("Member removed.");
+      loadGroups();
+      // Update local state for manage modal if open
+      if (showManageModal) {
+        setShowManageModal({
+          ...showManageModal,
+          members: showManageModal.members.filter(m => m.id !== userId)
+        });
+      }
+    } catch (err) {
+      toast.error("Failed to remove member.");
     }
   };
 
@@ -154,10 +157,6 @@ export const GroupsPage = () => {
           <div className="stat-mini-label">Total Members</div>
         </div>
         <div className="neo-card stat-mini">
-          <div className="stat-mini-value">{groups.reduce((acc, g) => acc + g.sessionsThisWeek, 0)}</div>
-          <div className="stat-mini-label">Sessions This Week</div>
-        </div>
-        <div className="neo-card stat-mini">
           <div className="stat-mini-value">{groups.filter(g => g.isOwner).length}</div>
           <div className="stat-mini-label">Groups You Lead</div>
         </div>
@@ -167,18 +166,12 @@ export const GroupsPage = () => {
       {showCreateModal && (
         <div className="neo-card" style={{ marginBottom: '20px' }}>
           <h3 style={{ marginBottom: '15px', fontWeight: 900 }}>🆕 Create a New Study Group</h3>
-          <div className="form-row" style={{ flexDirection: 'column', gap: '12px' }}>
+          <div className="form-row" style={{ flexDirection: 'column', gap: '12px', display: 'flex' }}>
             <input 
               className="neo-input" 
               placeholder="Group Name (e.g. 'Algo Assassins')" 
               value={newGroupName}
               onChange={e => setNewGroupName(e.target.value)}
-            />
-            <input 
-              className="neo-input" 
-              placeholder="Subject (e.g. 'Competitive Programming')" 
-              value={newGroupSubject}
-              onChange={e => setNewGroupSubject(e.target.value)}
             />
             <textarea 
               className="neo-input" 
@@ -190,6 +183,69 @@ export const GroupsPage = () => {
             <div style={{ display: 'flex', gap: '10px' }}>
               <button className="neo-btn primary" onClick={handleCreateGroup}>Create Group</button>
               <button className="neo-btn" onClick={() => setShowCreateModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invite Modal Overlay */}
+      {showInviteModal && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="neo-card" style={{ width: '400px', maxWidth: '95%', background: 'white' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ fontWeight: 900 }}>Invite to {showInviteModal.name}</h3>
+              <button className="neo-btn-icon small" onClick={() => setShowInviteModal(null)}><X size={18} /></button>
+            </div>
+            <div className="search-box neo-card" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', marginBottom: '15px' }}>
+              <Search size={18} />
+              <input 
+                className="search-input-clean" 
+                placeholder="Search by username..." 
+                value={userSearch}
+                onChange={e => handleSearchUsers(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="results-list" style={{ maxHeight: '200px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {searchResults.map(u => (
+                <div key={u.id} className="neo-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px' }}>
+                  <span style={{ fontWeight: 700 }}>{u.username}</span>
+                  <button className="neo-btn primary small" onClick={() => handleInvite(showInviteModal.id, u.id)}>Add</button>
+                </div>
+              ))}
+              {userSearch.length >= 2 && searchResults.length === 0 && (
+                <p style={{ textAlign: 'center', opacity: 0.5 }}>No users found.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Modal Overlay */}
+      {showManageModal && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="neo-card" style={{ width: '400px', maxWidth: '95%', background: 'white' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h3 style={{ fontWeight: 900 }}>Manage Members</h3>
+              <button className="neo-btn-icon small" onClick={() => setShowManageModal(null)}><X size={18} /></button>
+            </div>
+            <div className="members-list" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {showManageModal.members.map(m => (
+                <div key={m.id} className="neo-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 15px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#e2e8f0', border: '2px solid black', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{m.username[0].toUpperCase()}</div>
+                    <div>
+                      <div style={{ fontWeight: 700 }}>{m.username}</div>
+                      {m.id === (typeof showManageModal.creator === 'object' ? showManageModal.creator.id : showManageModal.creator) && <span style={{ fontSize: '0.7rem', color: 'var(--neo-primary-dark)' }}>Owner</span>}
+                    </div>
+                  </div>
+                  {showManageModal.isOwner && m.id !== user?.id && (
+                    <button className="neo-btn-icon small" style={{ color: 'red' }} onClick={() => handleRemoveMember(showManageModal.id, m.id)}>
+                      <UserMinus size={16} />
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -224,24 +280,18 @@ export const GroupsPage = () => {
                   {group.members.slice(0, 4).map((m, i) => (
                     <div
                       key={i}
-                      className={`member-avatar ${m.online ? 'online' : ''}`}
-                      style={{ background: m.avatar_color, zIndex: 10 - i }}
-                      title={m.name}
+                      className="member-avatar"
+                      style={{ background: '#f1f5f9', border: '2px solid black', zIndex: 10 - i }}
+                      title={m.username}
                     >
-                      {m.name[0]}
+                      {m.username[0].toUpperCase()}
                     </div>
                   ))}
                   {group.members.length > 4 && (
                     <div className="member-avatar more">+{group.members.length - 4}</div>
                   )}
                 </div>
-                <span className="member-count">{group.members.length}/{group.maxMembers}</span>
-              </div>
-
-              {/* Meta Row */}
-              <div className="group-meta-row">
-                <span className="meta-item">📅 {group.sessionsThisWeek} sessions/week</span>
-                <span className="meta-item">🕐 {group.lastActive}</span>
+                <span className="member-count">{group.members.length} members</span>
               </div>
 
               {/* Expanded Actions */}
@@ -251,10 +301,19 @@ export const GroupsPage = () => {
                     e.stopPropagation();
                     handleJoinSession(group.id);
                   }}><Video size={14} /> Start Session</button>
-                  <button className="neo-btn small" onClick={(e) => e.stopPropagation()}><MessageCircle size={14} /> Chat</button>
-                  <button className="neo-btn small" onClick={(e) => e.stopPropagation()}><UserPlus size={14} /> Invite</button>
+                  <button className="neo-btn small" onClick={(e) => {
+                    e.stopPropagation();
+                    setChatGroup({ id: group.id, name: group.name });
+                  }}><MessageCircle size={14} /> Chat</button>
+                  <button className="neo-btn small" onClick={(e) => {
+                    e.stopPropagation();
+                    setShowInviteModal(group);
+                  }}><UserPlus size={14} /> Invite</button>
                   {group.isOwner && (
-                    <button className="neo-btn small" onClick={(e) => e.stopPropagation()}><Settings size={14} /> Manage</button>
+                    <button className="neo-btn small" onClick={(e) => {
+                      e.stopPropagation();
+                      setShowManageModal(group);
+                    }}><Settings size={14} /> Manage</button>
                   )}
                 </div>
               )}
@@ -268,9 +327,18 @@ export const GroupsPage = () => {
         <GroupCalendar 
           groupId={selectedGroup} 
           groupName={groups.find(g => g.id === selectedGroup)?.name || "Group"}
-          memberIds={groups.find(g => g.id === selectedGroup)?.members.map(m => m.id) || []}
+        />
+      )}
+
+      {/* Chat Overlay */}
+      {chatGroup && (
+        <GroupChat 
+          groupId={chatGroup.id} 
+          groupName={chatGroup.name} 
+          onClose={() => setChatGroup(null)} 
         />
       )}
     </div>
   );
 };
+

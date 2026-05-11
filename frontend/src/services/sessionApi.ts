@@ -71,3 +71,12 @@ export const syncGoogleCalendar = () => {
     headers: { Authorization: `Token ${token}` }
   });
 };
+
+export const getGroupMessages = (groupId: number) => API.get(`groups/${groupId}/messages/`);
+export const sendGroupMessage = (groupId: number, content: string) => API.post(`groups/${groupId}/messages/`, { content });
+
+export const searchUsers = (query: string) => API.get(`groups/search_users/?q=${query}`);
+export const inviteToGroup = (groupId: number, userId: number) => API.post(`groups/${groupId}/invite_member/`, { user_id: userId });
+export const removeFromGroup = (groupId: number, userId: number) => API.post(`groups/${groupId}/remove_member/`, { user_id: userId });
+export const deleteSession = (id: number) => API.delete(`sessions/${id}/`);
+

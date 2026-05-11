@@ -206,7 +206,7 @@
   margin: 0 auto;
 }
 
-.section-label {
+.nb-section-label {
   text-align: center;
   font-family: 'Inter', sans-serif;
   font-weight: bold;
@@ -216,7 +216,7 @@
   font-size: 0.85rem;
 }
 
-.section-title {
+.nb-section-title {
   text-align: center;
   font-size: 3rem;
   font-weight: 900;
@@ -224,7 +224,7 @@
   letter-spacing: -1px;
 }
 
-.section-subtitle {
+.nb-section-subtitle {
   text-align: center;
   font-family: 'Inter', sans-serif;
   margin-bottom: 60px;

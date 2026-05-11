@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Users, Check, X, BookOpen, Calendar, MessageCircle } from 'lucide-react';
+import { Bell, Users, Check, X, BookOpen, Calendar, MessageCircle, Clock } from 'lucide-react';
 import { getNotifications, markNotifRead } from '../../../services/resourceApi';
 import { getStudyRequests, respondToRequest } from '../../../services/sessionApi';
 import { useAuthStore } from '../../../store/authStore';
@@ -72,116 +72,123 @@ const NotificationsPage = () => {
 
   return (
     <div className="social-container">
-      <div className="nb-header">
-        <h1 className="nb-title">Activity Feed</h1>
-        <p style={{fontWeight: 900}}>STAY SYNCED WITH YOUR CIRCLE</p>
+      <div className="page-header" style={{ marginBottom: '30px' }}>
+        <div>
+          <h1 className="page-title"><Bell size={28} /> Activity Feed</h1>
+          <p className="page-subtitle">Stay synced with your circle and academic alerts.</p>
+        </div>
+        <div className="tab-switcher neo-card" style={{ display: 'flex', padding: '5px', gap: '5px', margin: 0 }}>
+          <button 
+            className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            Alerts ({notifications.filter(n => !n.is_read).length})
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
+            onClick={() => setActiveTab('requests')}
+          >
+            Requests ({requests.filter(r => r.status === 'pending').length})
+          </button>
+        </div>
       </div>
 
-      <div style={{display: 'flex', gap: '20px', marginBottom: '40px'}}>
-        <button 
-          onClick={() => setActiveTab('all')}
-          className={`nb-btn ${activeTab === 'all' ? 'accent' : ''}`}
-        >
-          ALERTS ({notifications.filter(n => !n.is_read).length})
-        </button>
-        <button 
-          onClick={() => setActiveTab('requests')}
-          className={`nb-btn ${activeTab === 'requests' ? 'accent' : ''}`}
-        >
-          REQUESTS ({requests.filter(r => r.status === 'pending').length})
-        </button>
-      </div>
-
-      {activeTab === 'requests' ? (
-        <div className="requests-view">
+      {loading ? (
+        <div className="loading-state">
+          <div className="btn-spinner" style={{ width: '40px', height: '40px' }} />
+          <p>Syncing Activity DNA...</p>
+        </div>
+      ) : activeTab === 'requests' ? (
+        <div className="requests-container" style={{ gridTemplateColumns: '1fr' }}>
           {/* 1. INCOMING REQUESTS (Can Respond) */}
-          <div style={{marginBottom: '40px'}}>
-            <p className="nb-label" style={{marginBottom: '10px'}}>Incoming / Actions Required</p>
-            {requests.filter(r => r.status === 'pending' && r.receiver === currentUserId).map(req => (
-               <div key={req.id} className="nb-card" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '20px'}}>
-                     <div className="friend-avatar" style={{marginBottom: 0, width: '60px', height: '60px', background: '#bae6fd'}}>
-                        {req.sender_name[0]}
-                     </div>
-                     <div>
-                        <h3 style={{fontWeight: 900, marginBottom: '2px'}}>{req.sender_name}</h3>
-                        <p style={{fontSize: '0.7rem', fontWeight: 900, opacity: 0.6}}>WANTS TO JOIN YOUR CIRCLE</p>
-                     </div>
+          <div className="request-section">
+            <h3 className="section-title"><Users size={18} /> Incoming / Actions Required</h3>
+            {requests.filter(r => r.status === 'pending' && r.receiver === currentUserId).length === 0 ? (
+               <div className="empty-text">No new incoming requests.</div>
+            ) : (
+              <div className="request-list">
+                {requests.filter(r => r.status === 'pending' && r.receiver === currentUserId).map(req => (
+                  <div key={req.id} className="request-card neo-card">
+                    <div className="req-user">
+                      <div className="avatar-mini" style={{ background: '#bae6fd' }}>
+                        {req.sender_name?.[0] || '?'}
+                      </div>
+                      <div>
+                        <p className="req-name">{req.sender_name || 'Anonymous User'}</p>
+                        <p className="req-time">wants to join your circle</p>
+                      </div>
+                    </div>
+                    <div className="req-btns">
+                      <button className="neo-btn primary small" onClick={() => handleRespond(req.id, 'accept')}>
+                        <Check size={16} /> Accept
+                      </button>
+                      <button className="neo-btn danger small" onClick={() => handleRespond(req.id, 'decline')}>
+                        <X size={16} /> Decline
+                      </button>
+                    </div>
                   </div>
-                  <div style={{display: 'flex', gap: '10px'}}>
-                     <button 
-                        onClick={() => handleRespond(req.id, 'accept')}
-                        className="nb-btn accent"
-                        style={{padding: '10px'}}
-                     >
-                        <Check size={20} />
-                     </button>
-                     <button 
-                        onClick={() => handleRespond(req.id, 'decline')}
-                        className="nb-btn danger"
-                        style={{padding: '10px'}}
-                     >
-                        <X size={20} />
-                     </button>
-                  </div>
-               </div>
-            ))}
-            {requests.filter(r => r.status === 'pending' && r.receiver === currentUserId).length === 0 && (
-               <div className="nb-card" style={{textAlign: 'center', background: '#f8fafc', borderStyle: 'dotted'}}>
-                  <p style={{fontWeight: 900, opacity: 0.5}}>NO NEW INCOMING REQUESTS</p>
-               </div>
+                ))}
+              </div>
             )}
           </div>
 
           {/* 2. OUTGOING REQUESTS (Waiting) */}
-          <div style={{opacity: 0.8}}>
-            <p className="nb-label" style={{marginBottom: '10px'}}>Outgoing / Pending</p>
-            {requests.filter(r => r.status === 'pending' && r.sender === currentUserId).map(req => (
-               <div key={req.id} className="nb-card" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', borderStyle: 'dashed'}}>
-                  <div style={{display: 'flex', alignItems: 'center', gap: '20px'}}>
-                     <div className="friend-avatar" style={{marginBottom: 0, width: '40px', height: '40px', background: '#f1f5f9'}}>
-                        {req.receiver_name[0]}
-                     </div>
-                     <div>
-                        <h3 style={{fontWeight: 900, marginBottom: '2px', fontSize: '0.9rem'}}>{req.receiver_name}</h3>
-                        <p style={{fontSize: '0.6rem', fontWeight: 900, opacity: 0.5}}>WAITING FOR RESPONSE...</p>
-                     </div>
+          <div className="request-section" style={{ marginTop: '40px', opacity: 0.8 }}>
+            <h3 className="section-title"><Clock size={18} /> Outgoing / Pending Response</h3>
+            {requests.filter(r => r.status === 'pending' && r.sender === currentUserId).length === 0 ? (
+               <div className="empty-text">No active outgoing requests.</div>
+            ) : (
+              <div className="request-list">
+                {requests.filter(r => r.status === 'pending' && r.sender === currentUserId).map(req => (
+                  <div key={req.id} className="request-card neo-card sent">
+                    <div className="req-user">
+                      <div className="avatar-mini" style={{ background: '#f1f5f9' }}>
+                        {req.receiver_name?.[0] || '?'}
+                      </div>
+                      <div>
+                        <p className="req-name">{req.receiver_name || 'Anonymous User'}</p>
+                        <p className="req-time">Waiting for response...</p>
+                      </div>
+                    </div>
+                    <span className="dna-tag" style={{ borderStyle: 'dashed', opacity: 0.6 }}>Pending</span>
                   </div>
-                  <span style={{fontSize: '0.7rem', fontWeight: 900, color: '#64748b'}}>PENDING</span>
-               </div>
-            ))}
+                ))}
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        <div className="notifications-view">
-          {notifications.map(notif => (
-            <div 
-              key={notif.id} 
-              className="nb-card" 
-              style={{
-                display: 'flex', 
-                gap: '20px', 
-                opacity: notif.is_read ? 0.5 : 1,
-                borderLeftWidth: notif.is_read ? '3px' : '10px',
-                borderColor: notif.is_read ? 'black' : '#6366f1'
-              }}
-              onClick={() => !notif.is_read && handleMarkRead(notif.id)}
-            >
-               <div style={{background: '#f1f5f9', padding: '12px', border: '2px solid black'}}>
-                  {notif.notif_type === 'match' ? <Users size={20} /> : notif.notif_type === 'session' ? <Calendar size={20} /> : <MessageCircle size={20} />}
-               </div>
-               <div>
-                  <div style={{fontSize: '0.6rem', fontWeight: 900, opacity: 0.5, marginBottom: '5px'}}>
-                    {new Date(notif.created_at).toLocaleString()}
-                  </div>
-                  <p style={{fontWeight: 900, fontSize: '1.1rem'}}>{notif.message}</p>
-               </div>
-            </div>
-          ))}
-          {notifications.length === 0 && (
-             <div className="nb-card" style={{textAlign: 'center', background: '#f8fafc', borderStyle: 'dashed'}}>
-                <p style={{fontWeight: 900, opacity: 0.5}}>NOTHING TO SHOW</p>
-             </div>
+        <div className="notifications-view" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {notifications.length === 0 ? (
+             <div className="empty-text">Nothing to show in your feed yet.</div>
+          ) : (
+            notifications.map(notif => (
+              <div 
+                key={notif.id} 
+                className={`neo-card notification-card ${notif.is_read ? 'read' : 'unread'}`}
+                style={{
+                  display: 'flex', 
+                  gap: '20px', 
+                  alignItems: 'center',
+                  opacity: notif.is_read ? 0.6 : 1,
+                  borderLeft: notif.is_read ? '4px solid var(--neo-black)' : '10px solid #6366f1',
+                  cursor: notif.is_read ? 'default' : 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onClick={() => !notif.is_read && handleMarkRead(notif.id)}
+              >
+                 <div className="res-icon" style={{ background: '#f1f5f9' }}>
+                    {notif.notif_type === 'match' ? <Users size={20} /> : notif.notif_type === 'session' ? <Calendar size={20} /> : <MessageCircle size={20} />}
+                 </div>
+                 <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, marginBottom: '4px' }}>
+                      {notif.created_at ? new Date(notif.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently'}
+                    </div>
+                    <p style={{ fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>{notif.message}</p>
+                 </div>
+                 {!notif.is_read && <div className="unread-dot" style={{ width: '12px', height: '12px', background: '#6366f1', borderRadius: '50%' }} />}
+              </div>
+            ))
           )}
         </div>
       )}

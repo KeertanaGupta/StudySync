@@ -4,6 +4,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../../config/api';
 import { sendStudyRequest } from '../../../services/sessionApi';
 import { toast } from 'sonner';
+import { useAuthStore } from '../../../store/authStore';
 
 interface MatchUser {
   id: string;
@@ -31,6 +32,7 @@ export const MatchesPage = () => {
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
+  const { user } = useAuthStore();
 
   const filters = [
     { label: 'All', value: 'all' },
@@ -41,7 +43,32 @@ export const MatchesPage = () => {
 
   const filteredMatches = matches.filter(m => {
     if (selectedFilter === 'high') return m.compatibility >= 90;
-    // You can add logic here to filter by specific goals or availability
+    
+    if (selectedFilter === 'goal') {
+      // Compare match's goal with current user's goal
+      // Note: backend returns display name for study_goal in the matches list
+      // but the authStore user has the raw value.
+      const userGoalDisplay = {
+        'exam': 'Exam Prep',
+        'project': 'Project Help',
+        'concept': 'Concept Clarity',
+        'practice': 'Practice Problems'
+      }[user?.study_goal || ''] || user?.study_goal;
+      
+      return m.study_goal === userGoalDisplay;
+    }
+
+    if (selectedFilter === 'available') {
+      const hour = new Date().getHours();
+      let currentPeriod = '';
+      if (hour >= 6 && hour < 12) currentPeriod = 'Early Bird (Mornings)';
+      else if (hour >= 12 && hour < 17) currentPeriod = 'Afternoon Grind';
+      else if (hour >= 17 && hour < 24) currentPeriod = 'Night Owl (Evenings)';
+      else currentPeriod = 'Night Owl (Evenings)'; // Very late night
+      
+      return m.availability === currentPeriod;
+    }
+
     return true;
   });
 

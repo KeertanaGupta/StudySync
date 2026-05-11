@@ -233,10 +233,27 @@ export const SchedulePage = ({ onJoinSession }: SchedulePageProps) => {
           <p className="page-subtitle">Plan your week and never miss a study session.</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button className="nb-btn primary" onClick={handleSyncCalendar} disabled={isSyncingCalendar} style={{ background: '#f87171' }}>
+          <button 
+            className="neo-btn" 
+            onClick={handleSyncCalendar} 
+            disabled={isSyncingCalendar} 
+            style={{ 
+              background: '#f87171', /* Google Red */
+              color: 'white',
+              border: '3px solid var(--neo-black)'
+            }}
+          >
             {isSyncingCalendar ? <Loader2 size={18} className="animate-spin" /> : <Calendar size={18} />} G-CAL SYNC
           </button>
-          <button className="nb-btn primary" onClick={() => setShowOcrPanel(!showOcrPanel)}>
+          <button 
+            className="neo-btn primary" 
+            onClick={() => setShowOcrPanel(!showOcrPanel)}
+            style={{ 
+              background: '#c4b5fd', /* Magic Purple */
+              color: 'var(--neo-black)',
+              border: '3px solid var(--neo-black)'
+            }}
+          >
             <Sparkles size={18} /> MAGIC SYNC
           </button>
           <button className="neo-btn" onClick={() => setShowOptimizeModal(true)}>

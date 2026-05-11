@@ -3,11 +3,11 @@ from django.conf import settings
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import StudySession, Resource, Notification, StudyGroup, GroupEvent
+from .models import StudySession, Resource, Notification, StudyGroup, GroupEvent, GroupMessage
 from .serializers import (
     StudySessionSerializer, ResourceSerializer, NotificationSerializer, 
     StudyGroupSerializer, StudyRequestSerializer, UserAvailabilitySerializer,
-    GroupEventSerializer
+    GroupEventSerializer, GroupMessageSerializer
 )
 from users.models import UserAvailability, StudyRequest
 from .services.livekit_service import LiveKitService
@@ -123,6 +123,23 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
         return Response({'status': 'all marked as read'}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'])
+    def search_users(self, request):
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response([])
+        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        users = User.objects.filter(
+            models.Q(username__icontains=query) | 
+            models.Q(email__icontains=query)
+        ).exclude(id=request.user.id)[:10]
+        
+        from .serializers import UserMiniSerializer
+        serializer = UserMiniSerializer(users, many=True)
+        return Response(serializer.data)
+
 class StudyGroupViewSet(viewsets.ModelViewSet):
     serializer_class = StudyGroupSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -217,6 +234,66 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             })
             
         return Response(suggestions)
+
+    @action(detail=True, methods=['get', 'post'])
+    def messages(self, request, pk=None):
+        group = self.get_object()
+        if request.method == 'GET':
+            messages = group.messages.all().order_by('created_at')
+            serializer = GroupMessageSerializer(messages, many=True)
+            return Response(serializer.data)
+        
+        elif request.method == 'POST':
+            serializer = GroupMessageSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(user=request.user, group=group)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def invite_member(self, request, pk=None):
+        group = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id is required"}, status=400)
+        
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        try:
+            user_to_invite = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+        
+        if group.members.filter(id=user_id).exists():
+            return Response({"error": "User is already a member"}, status=400)
+        
+        group.members.add(user_to_invite)
+        
+        # Notify
+        Notification.objects.create(
+            user=user_to_invite,
+            message=f"You have been added to the study group: {group.name} by {request.user.username}",
+            notif_type='session'
+        )
+        
+        return Response({"status": f"Added {user_to_invite.username} to group"}, status=200)
+
+    @action(detail=True, methods=['post'])
+    def remove_member(self, request, pk=None):
+        group = self.get_object()
+        if group.creator != request.user:
+            return Response({"error": "Only the creator can remove members"}, status=403)
+        
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({"error": "user_id is required"}, status=400)
+        
+        if int(user_id) == group.creator.id:
+            return Response({"error": "Cannot remove the creator"}, status=400)
+            
+        group.members.remove(user_id)
+        return Response({"status": "Member removed"}, status=200)
+
 
 class StudyRequestViewSet(viewsets.ModelViewSet):
     serializer_class = StudyRequestSerializer

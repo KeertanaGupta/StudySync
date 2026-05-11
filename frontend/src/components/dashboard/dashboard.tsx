@@ -309,7 +309,7 @@ export const Dashboard = () => {
     <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>
        +__+ GROUP STUDY SESSIONS
     </div>
-    <button className="nb-btn primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }} onClick={() => setShowCreateSession(!showCreateSession)}>
+    <button className="neo-btn primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }} onClick={() => setShowCreateSession(!showCreateSession)}>
       {showCreateSession ? 'CANCEL' : 'LAUNCH NEW SESSION'}
     </button>
   </div>

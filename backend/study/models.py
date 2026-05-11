@@ -75,3 +75,16 @@ class GroupEvent(models.Model):
 
     def __str__(self):
         return f"{self.group.name} - {self.title}"
+
+class GroupMessage(models.Model):
+    group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='messages')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.user.username} @ {self.group.name}: {self.content[:20]}"
+

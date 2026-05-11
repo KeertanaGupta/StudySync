@@ -2,159 +2,382 @@
   padding: 40px;
   max-width: 1200px;
   margin: 0 auto;
+  animation: fadeIn 0.3s ease-out;
 }
 
-/* --- NEUBRUTALIST SYSTEM (MATCHING DASHBOARD.CSS) --- */
-.nb-card {
-  background: var(--neo-card-bg);
-  border: var(--neo-border);
-  box-shadow: var(--neo-shadow-sm);
-  padding: 30px;
-  margin-bottom: 24px;
-  border-radius: 12px;
-  transition: all 0.1s;
-}
-
-.nb-card:hover {
-  transform: translate(-3px, -3px);
-  box-shadow: var(--neo-shadow);
-}
-
-.nb-header {
-  border-bottom: var(--neo-border);
+/* --- PAGE HEADER --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end; /* Align to bottom of title */
+  border-bottom: 4px solid var(--neo-black);
+  padding-bottom: 25px;
   margin-bottom: 40px;
-  padding-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-.nb-title {
-  font-size: 2.5rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  font-family: 'Outfit', sans-serif; /* Brand header font */
-}
-
-/* Neubrutalist Button */
-.nb-btn {
-  display: inline-flex;
+.page-title {
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
-  background: var(--white);
-  border: var(--neo-border);
-  box-shadow: var(--neo-shadow-sm);
+  gap: 15px;
+  font-size: 2.8rem;
   font-weight: 900;
+  margin: 0;
+  line-height: 1;
   text-transform: uppercase;
+  letter-spacing: -1px;
+}
+
+.page-subtitle {
+  margin: 12px 0 0 0;
+  font-weight: 700;
+  opacity: 0.6;
+  font-size: 1.1rem;
+}
+
+/* --- TAB SWITCHER --- */
+.tab-switcher {
+  background: var(--neo-white);
+  padding: 8px;
+  display: flex;
+  gap: 10px;
+  border: 3px solid var(--neo-black);
+  box-shadow: 4px 4px 0 var(--neo-black);
+  border-radius: 12px;
+}
+
+.tab-btn {
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  background: transparent;
+  font-weight: 900;
+  font-size: 0.95rem;
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.1s;
-  font-family: 'Inter', sans-serif;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-transform: uppercase;
 }
 
-.nb-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--neo-black);
+.tab-btn:hover:not(.active) {
+  background: rgba(0,0,0,0.05);
 }
 
-.nb-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--neo-black);
+.tab-btn.active {
+  background: #fef08a; /* Brand Yellow */
+  border: 2px solid var(--neo-black);
+  box-shadow: 2px 2px 0 var(--neo-black);
 }
 
-.nb-btn.primary {
-  background: #fef08a; /* Consistent Yellow */
+.notif-badge {
+  background: #ef4444;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 0.7rem;
 }
 
-.nb-btn.accent {
-  background: #bae6fd; /* Light Blue */
-}
-
-.nb-btn.danger {
-  background: #fca5a5;
-}
-
-/* Grid Layout */
-.nb-grid {
+/* --- FRIENDS GRID --- */
+.friends-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
 }
 
-/* Friend Card Styling */
 .friend-card {
   display: flex;
   flex-direction: column;
+  padding: 24px;
+}
+
+.friend-header {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 .friend-avatar {
-  width: 70px;
-  height: 70px;
-  border: var(--neo-border);
-  background: var(--white);
+  width: 60px;
+  height: 60px;
+  border: 3px solid var(--neo-black);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 1.5rem;
   font-weight: 900;
-  margin-bottom: 15px;
-  border-radius: 50%; /* Circles for avatars are okay */
+  border-radius: 12px;
+  box-shadow: 4px 4px 0 var(--neo-black);
 }
 
-.friend-tag {
-  display: inline-block;
-  padding: 4px 10px;
-  border: 1px solid var(--neo-black);
+.friend-meta h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.friend-meta p {
+  margin: 0;
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+.friend-body {
+  flex: 1;
+}
+
+.institution-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 900;
   font-size: 0.75rem;
+  padding: 6px 12px;
+  background: #f8fafc;
+  border: 2px solid var(--neo-black);
+  border-radius: 6px;
+  margin-bottom: 15px;
+  width: fit-content;
+}
+
+.dna-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dna-tag {
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 4px 10px;
+  border: 2px solid var(--neo-black);
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.dna-tag.style { background: #bae6fd; }
+.dna-tag.role { background: #bbf7d0; }
+
+.friend-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* --- REQUESTS --- */
+.requests-container {
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+@media (max-width: 900px) {
+  .requests-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.6rem;
   font-weight: 900;
   text-transform: uppercase;
-  margin: 10px 8px 0 0;
-  border-radius: 4px;
-  background: var(--white);
+  margin-bottom: 35px;
+  border-bottom: 4px solid var(--neo-black);
+  padding-bottom: 12px;
+  width: 100%;
 }
 
-/* --- MODALS (HIGH VISIBILITY) --- */
-.nb-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6); /* Slightly darker for contrast */
-  backdrop-filter: blur(8px);
-  z-index: 1000;
+.section-title svg {
+  color: var(--neo-black);
+  background: #bae6fd;
+  padding: 8px;
+  border: 2px solid var(--neo-black);
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+}
+
+.request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.request-card {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--neo-white);
+  transition: transform 0.2s;
+}
+
+.request-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 6px 6px 0 var(--neo-black);
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 0;
+  gap: 20px;
+}
+
+.loading-state p {
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.avatar-mini {
+  width: 40px;
+  height: 40px;
+  border: 2px solid var(--neo-black);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  font-weight: 900;
+  border-radius: 8px;
+  background: #fef08a;
 }
 
-.nb-modal {
-  background: var(--neo-bg);
-  border: var(--neo-border);
-  box-shadow: 15px 15px 0px var(--neo-black);
+.req-name {
+  font-weight: 900;
+  margin: 0;
+}
+
+.req-time {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin: 0;
+}
+
+.req-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.empty-text {
+  font-weight: 700;
+  opacity: 0.4;
+  text-align: center;
+  padding: 40px;
+  border: 3px dashed rgba(0,0,0,0.1);
+  border-radius: 12px;
+}
+
+/* --- MODAL REFINEMENTS --- */
+.modal-content {
+  display: flex;
+  gap: 40px;
+}
+
+.profile-sidebar {
+  flex: 0 0 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.friend-avatar.large {
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.profile-name {
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.profile-inst {
+  font-weight: 900;
+  opacity: 0.6;
+  margin-top: 5px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.profile-stats {
   width: 100%;
-  max-width: 850px;
-  max-height: 85vh;
-  overflow-y: auto;
-  padding: 50px;
-  position: relative;
-  border-radius: 20px;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.close-btn {
-  position: absolute;
-  top: 25px;
-  right: 25px;
+.p-stat {
+  padding: 15px;
+  background: var(--neo-bg);
+  border: 3px solid var(--neo-black);
+  box-shadow: 4px 4px 0 var(--neo-black);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-/* Typography fix */
-.nb-label {
-   font-size: 0.7rem;
-   font-weight: 900;
-   color: #64748b;
-   text-transform: uppercase;
-   letter-spacing: 1px;
-   margin-bottom: 5px;
+.p-label {
+  font-size: 0.65rem;
+  font-weight: 900;
+  opacity: 0.5;
+  letter-spacing: 1px;
 }
 
-.nb-value {
-   font-size: 1.1rem;
-   font-weight: 900;
-   color: var(--neo-black);
+.p-value {
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.profile-main {
+  flex: 1;
+}
+
+.resources-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+}
+
+.res-icon {
+  background: #fef08a;
+  padding: 10px;
+  border: 2px solid var(--neo-black);
+  border-radius: 8px;
+}
+
+.res-info {
+  flex: 1;
+}
+
+.res-title {
+  font-weight: 900;
+  margin: 0;
+}
+
+.res-subject {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  margin: 0;
 }

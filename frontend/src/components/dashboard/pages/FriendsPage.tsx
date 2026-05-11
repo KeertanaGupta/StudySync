@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { getFriends } from '../../../services/sessionApi';
-import { Users, User, BookOpen, MessageSquare, Video, Shield, ChevronRight, X } from 'lucide-react';
+import { getFriends, getStudyRequests, respondToRequest } from '../../../services/sessionApi';
+import { Users, User, BookOpen, Video, Shield, ChevronRight, X, Check, UserMinus, Clock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config/api';
@@ -17,23 +17,50 @@ interface Friend {
   avatar_color: string;
 }
 
+interface StudyRequest {
+  id: number;
+  sender_name: string;
+  receiver_name: string;
+  sender: number;
+  receiver: number;
+  status: string;
+  created_at: string;
+}
+
 const FriendsPage: React.FC = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [requests, setRequests] = useState<StudyRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFriend, setSelectedFriend] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'circle' | 'requests'>('circle');
 
   useEffect(() => {
-    fetchFriends();
+    fetchData();
   }, []);
 
-  const fetchFriends = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const res = await getFriends();
-      setFriends(res.data);
+      const [friendsRes, requestsRes] = await Promise.all([
+        getFriends(),
+        getStudyRequests()
+      ]);
+      setFriends(friendsRes.data);
+      setRequests(requestsRes.data);
     } catch (err) {
-      toast.error("Network Error: Failed to sync circle.");
+      toast.error("Failed to sync circle data.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRequest = async (id: number, action: 'accept' | 'decline') => {
+    try {
+      await respondToRequest(id, action);
+      toast.success(`Request ${action}ed!`);
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to process request.");
     }
   };
 
@@ -49,116 +76,200 @@ const FriendsPage: React.FC = () => {
     }
   };
 
+  const incomingRequests = requests.filter(r => r.status === 'pending' && r.sender_name !== localStorage.getItem('username')); // This is a bit hacky, better check IDs
+  // Actually StudyRequestSerializer provides sender and receiver IDs
+  const currentUserId = JSON.parse(localStorage.getItem('user_id') || '0');
+  const incoming = requests.filter(r => r.status === 'pending' && r.receiver === currentUserId);
+  const outgoing = requests.filter(r => r.status === 'pending' && r.sender === currentUserId);
+
   return (
     <div className="social-container">
-      <div className="nb-header">
-        <h1 className="nb-title">Study Circle</h1>
-        <p style={{fontWeight: 900}}>CONNECTED WITH {friends.length} ACADEMIC PARTNERS</p>
+      <div className="page-header" style={{ marginBottom: '30px' }}>
+        <div>
+          <h1 className="page-title"><Users size={28} /> Study Circle</h1>
+          <p className="page-subtitle">Manage your academic network and study partners.</p>
+        </div>
+        <div className="tab-switcher neo-card" style={{ display: 'flex', padding: '5px', gap: '5px', margin: 0 }}>
+          <button 
+            className={`tab-btn ${activeTab === 'circle' ? 'active' : ''}`}
+            onClick={() => setActiveTab('circle')}
+          >
+            My Circle ({friends.length})
+          </button>
+          <button 
+            className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
+            onClick={() => setActiveTab('requests')}
+          >
+            Requests {incoming.length > 0 && <span className="notif-badge">{incoming.length}</span>}
+          </button>
+        </div>
       </div>
 
       {loading ? (
-        <div style={{textAlign: 'center', padding: '100px'}}>
-          <h2 className="nb-title" style={{fontSize: '1.5rem'}}>SYNCING...</h2>
+        <div className="loading-state">
+          <div className="btn-spinner" style={{ width: '40px', height: '40px' }} />
+          <p>Syncing DNA Network...</p>
         </div>
-      ) : friends.length === 0 ? (
-        <div className="nb-card" style={{textAlign: 'center', padding: '80px'}}>
-           <h2 className="nb-title" style={{fontSize: '1.8rem', marginBottom: '20px'}}>Your Circle is Empty</h2>
-           <p style={{fontWeight: 900, marginBottom: '30px'}}>Find students with matching DNA to grow your network.</p>
-           <button className="nb-btn primary">SCAN FOR MATCHES</button>
-        </div>
-      ) : (
-        <div className="nb-grid">
-          {friends.map((friend) => (
-            <div key={friend.id} className="nb-card friend-card">
-              <div className="friend-avatar" style={{backgroundColor: friend.avatar_color}}>
-                {friend.name[0]}
-              </div>
-              
-              <div className="friend-info">
-                <h3>{friend.name}</h3>
-                <p style={{fontWeight: 900, opacity: 0.6, fontSize: '0.9rem'}}>@{friend.username}</p>
-                <div style={{marginTop: '15px', padding: '10px', background: '#f8fafc', border: '2px solid black', fontWeight: 900, fontSize: '0.8rem'}}>
-                  {friend.institution}
-                </div>
-                <div className="tags">
-                   <span className="friend-tag" style={{background: '#bae6fd'}}>{friend.learning_style}</span>
-                   <span className="friend-tag" style={{background: '#bbf7d0'}}>{friend.role}</span>
-                </div>
-              </div>
-
-              <div style={{marginTop: 'auto', paddingTop: '20px', display: 'flex', gap: '10px'}}>
-                <button 
-                  onClick={() => viewProfile(friend.id)}
-                  className="nb-btn primary" 
-                  style={{flex: 1, fontSize: '0.8rem'}}
-                >
-                  Explore Profile
-                </button>
-                <button className="nb-btn" style={{padding: '10px'}}>
-                  <Video size={18} />
-                </button>
-              </div>
+      ) : activeTab === 'circle' ? (
+        <>
+          {friends.length === 0 ? (
+            <div className="empty-state neo-card">
+              <Users size={48} style={{ opacity: 0.3 }} />
+              <h3>Your Circle is Empty</h3>
+              <p>Scan for matches to find students with matching DNA.</p>
+              <button className="neo-btn primary" onClick={() => window.location.hash = 'matches'}>
+                SCAN FOR MATCHES
+              </button>
             </div>
-          ))}
+          ) : (
+            <div className="friends-grid">
+              {friends.map((friend) => (
+                <div key={friend.id} className="friend-card neo-card">
+                  <div className="friend-header">
+                    <div className="friend-avatar" style={{ backgroundColor: friend.avatar_color }}>
+                      {friend.name[0]}
+                    </div>
+                    <div className="friend-meta">
+                      <h3>{friend.name}</h3>
+                      <p>@{friend.username}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="friend-body">
+                    <div className="institution-tag">
+                      <Shield size={12} /> {friend.institution}
+                    </div>
+                    <div className="dna-tags">
+                      <span className="dna-tag style">{friend.learning_style}</span>
+                      <span className="dna-tag role">{friend.role}</span>
+                    </div>
+                  </div>
+
+                  <div className="friend-actions">
+                    <button onClick={() => viewProfile(friend.id)} className="neo-btn primary small">
+                      Explore Profile
+                    </button>
+                    <button className="neo-btn small icon-only" title="Start Call">
+                      <Video size={16} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="requests-container">
+          <div className="request-section">
+            <h3 className="section-title"><Clock size={18} /> Incoming Requests</h3>
+            {incoming.length === 0 ? (
+              <p className="empty-text">No pending invitations.</p>
+            ) : (
+              <div className="request-list">
+                {incoming.map(req => (
+                  <div key={req.id} className="request-card neo-card">
+                    <div className="req-user">
+                      <div className="avatar-mini">{req.sender_name[0]}</div>
+                      <div>
+                        <p className="req-name">{req.sender_name}</p>
+                        <p className="req-time">Sent {new Date(req.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="req-btns">
+                      <button className="neo-btn primary small" onClick={() => handleRequest(req.id, 'accept')}>
+                        <Check size={16} /> Accept
+                      </button>
+                      <button className="neo-btn danger small" onClick={() => handleRequest(req.id, 'decline')}>
+                        <X size={16} /> Decline
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="request-section" style={{ marginTop: '40px' }}>
+            <h3 className="section-title"><ChevronRight size={18} /> Sent Requests</h3>
+            {outgoing.length === 0 ? (
+              <p className="empty-text">No active outgoing requests.</p>
+            ) : (
+              <div className="request-list">
+                {outgoing.map(req => (
+                  <div key={req.id} className="request-card neo-card sent">
+                    <div className="req-user">
+                      <div className="avatar-mini">{req.receiver_name[0]}</div>
+                      <div>
+                        <p className="req-name">{req.receiver_name}</p>
+                        <p className="req-time">Pending response...</p>
+                      </div>
+                    </div>
+                    <button className="neo-btn small outline" onClick={() => handleRequest(req.id, 'decline')}>
+                      Cancel
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Profile Modal */}
       {selectedFriend && (
-        <div className="nb-modal-overlay">
-           <div className="nb-modal">
-              <button onClick={() => setSelectedFriend(null)} className="nb-btn danger close-btn">
-                <X size={20} />
-              </button>
+        <div className="nb-modal-overlay" onClick={() => setSelectedFriend(null)}>
+          <div className="nb-modal" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedFriend(null)} className="close-modal">
+              <X size={20} />
+            </button>
 
-              <div style={{display: 'flex', gap: '40px', flexWrap: 'wrap'}}>
-                 <div style={{flex: '1 1 200px'}}>
-                    <div className="friend-avatar" style={{width: '120px', height: '120px', fontSize: '3rem'}}>
-                       {selectedFriend.first_name?.[0] || selectedFriend.username[0]}
-                    </div>
-                    <h2 className="nb-title" style={{fontSize: '2rem'}}>{selectedFriend.first_name}</h2>
-                    <p style={{fontWeight: 900, textTransform: 'uppercase'}}>{selectedFriend.institution}</p>
-                    
-                    <div style={{marginTop: '30px', display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                       <div className="nb-card" style={{padding: '15px', marginBottom: 0, boxShadow: '4px 4px 0px 0px black'}}>
-                          <p className="nb-label">learning DNA</p>
-                          <p className="nb-value">{selectedFriend.learning_style}</p>
-                       </div>
-                       <div className="nb-card" style={{padding: '15px', marginBottom: 0, boxShadow: '4px 4px 0px 0px black'}}>
-                          <p className="nb-label">current mission</p>
-                          <p className="nb-value">{selectedFriend.study_goal}</p>
-                       </div>
-                    </div>
-                 </div>
-
-                 <div style={{flex: '2 1 400px'}}>
-                    <h3 className="nb-title" style={{fontSize: '1.2rem', marginBottom: '30px', borderBottom: '2px solid black', paddingBottom: '10px'}}>
-                       Shared Library
-                    </h3>
-                    <div style={{display: 'grid', gap: '15px'}}>
-                       {selectedFriend.resources?.map((res: any) => (
-                         <div key={res.id} className="nb-card" style={{display: 'flex', alignItems: 'center', gap: '20px', padding: '20px', margin: 0}}>
-                            <div style={{background: '#fef08a', padding: '12px', border: '2px solid black', borderRadius: '8px'}}>
-                               <BookOpen size={24} />
-                            </div>
-                            <div style={{flex: 1}}>
-                               <p style={{fontWeight: 900, fontSize: '1.1rem'}}>{res.title}</p>
-                               <p className="nb-label" style={{marginBottom: 0}}>{res.subject}</p>
-                            </div>
-                            <a href={res.file} download className="nb-btn primary" style={{padding: '10px'}}>
-                               <ChevronRight size={24} />
-                            </a>
-                         </div>
-                       ))}
-                       {(!selectedFriend.resources || selectedFriend.resources.length === 0) && (
-                          <div className="nb-card" style={{textAlign: 'center', background: '#f8fafc', borderStyle: 'dashed'}}>
-                             <p style={{fontWeight: 900, opacity: 0.5}}>No public resources shared yet.</p>
-                          </div>
-                       )}
-                    </div>
-                 </div>
+            <div className="modal-content">
+              <div className="profile-sidebar">
+                <div className="friend-avatar large">
+                  {selectedFriend.first_name?.[0] || selectedFriend.username[0]}
+                </div>
+                <h2 className="profile-name">{selectedFriend.first_name || selectedFriend.username}</h2>
+                <p className="profile-inst">{selectedFriend.institution}</p>
+                
+                <div className="profile-stats">
+                  <div className="p-stat">
+                    <span className="p-label">DNA TYPE</span>
+                    <span className="p-value">{selectedFriend.learning_style}</span>
+                  </div>
+                  <div className="p-stat">
+                    <span className="p-label">MISSION</span>
+                    <span className="p-value">{selectedFriend.study_goal}</span>
+                  </div>
+                </div>
               </div>
-           </div>
+
+              <div className="profile-main">
+                <h3 className="section-title">Shared Library</h3>
+                <div className="resources-stack">
+                  {selectedFriend.resources?.length > 0 ? (
+                    selectedFriend.resources.map((res: any) => (
+                      <div key={res.id} className="resource-item neo-card">
+                        <div className="res-icon">
+                          <BookOpen size={20} />
+                        </div>
+                        <div className="res-info">
+                          <p className="res-title">{res.title}</p>
+                          <p className="res-subject">{res.subject}</p>
+                        </div>
+                        <a href={res.file} target="_blank" rel="noreferrer" className="neo-btn primary small">
+                          View
+                        </a>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="empty-resources">
+                      <p>No public resources shared yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

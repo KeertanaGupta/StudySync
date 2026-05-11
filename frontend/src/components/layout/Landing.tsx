@@ -65,19 +65,13 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
           <button className="nb-btn-secondary">▶ Watch Demo</button>
         </div>
 
-        <div className="nb-trusted">
-          <p>Trusted by students at</p>
-          <div className="nb-schools">
-            <span>MIT</span> <span>STANFORD</span> <span>OXFORD</span> <span>BERKELEY</span>
-          </div>
-        </div>
       </section>
 
       {/* FEATURES SECTION */}
       <section id="features" className="nb-section">
-        <div className="section-label">Features</div>
-        <h2 className="section-title">Everything a study group<br />should be</h2>
-        <p className="section-subtitle">
+        <div className="nb-section-label">Features</div>
+        <h2 className="nb-section-title">Everything a study group<br />should be</h2>
+        <p className="nb-section-subtitle">
           Four core systems working together to make group learning the most effective part of your week.
         </p>
 
@@ -107,8 +101,8 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
 
       {/* HOW IT WORKS SECTION */}
       <section id="how-it-works" className="nb-section">
-        <div className="section-label">How it works</div>
-        <h2 className="section-title">From signup to first<br />session in minutes</h2>
+        <div className="nb-section-label">How it works</div>
+        <h2 className="nb-section-title">From signup to first<br />session in minutes</h2>
 
         <div className="timeline">
           <div className="timeline-step">
@@ -140,8 +134,8 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
 
       {/* REVIEWS SECTION */}
       <section id="reviews" className="nb-section">
-        <div className="section-label">Loved by students</div>
-        <h2 className="section-title">Real stories, real<br />results</h2>
+        <div className="nb-section-label">Loved by students</div>
+        <h2 className="nb-section-title">Real stories, real<br />results</h2>
 
         <div className="reviews-grid">
           <div className="nb-card">
