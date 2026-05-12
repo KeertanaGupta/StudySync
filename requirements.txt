@@ -133,3 +133,7 @@ gunicorn
 whitenoise
 dj-database-url
 django-environ
+
+cloudinary
+django-cloudinary-storage
+psycopg2-binary
