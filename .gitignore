@@ -1,8 +1,27 @@
-# Python virtual environments
+# Python
 venv/
 env/
 __pycache__/
+*.py[cod]
+*$py.class
+.env
+db.sqlite3
 
-# AI Models (so you don't upload heavy local models later)
+# Node
+node_modules/
+dist/
+build/
+
+# AI/Large Files
 *.pt
 *.bin
+*.weights
+*.h5
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Deployment
+.vercel
+.render
