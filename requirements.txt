@@ -91,12 +91,10 @@ pydub==0.25.1
 pyee==12.1.1
 PyJWT==2.10.1
 pyparsing==3.3.2
-pyreadline3==3.5.4
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 python-pptx==1.0.2
 pytz==2025.2
-pywin32==310
 PyYAML==6.0.2
 redis==7.4.0
 regex==2024.11.6
