@@ -108,21 +108,34 @@ export const SmartTestBrowser = ({ skillsToTest, onComplete, onCancel }: SmartTe
             const data = imageData.data;
             let colorSum = 0;
             let sampleCount = 0;
+            let minBrightness = 255;
+            let maxBrightness = 0;
+
             // Sample every 4th pixel to improve performance
             for(let x = 0; x < data.length; x += 16) {
-              colorSum += data[x] + data[x+1] + data[x+2];
+              const r = data[x];
+              const g = data[x+1];
+              const b = data[x+2];
+              const pixelBrightness = (r + g + b) / 3;
+              
+              colorSum += pixelBrightness;
+              if (pixelBrightness < minBrightness) minBrightness = pixelBrightness;
+              if (pixelBrightness > maxBrightness) maxBrightness = pixelBrightness;
+              
               sampleCount++;
             }
-            const brightness = (colorSum / sampleCount) / 3;
-            console.log("Camera Brightness:", brightness);
             
-            if (brightness < 30) { // Covered or extremely dark
+            const brightness = colorSum / sampleCount;
+            const contrast = maxBrightness - minBrightness;
+            
+            // Camera is covered if extremely dark OR if there is very low contrast (e.g., finger over lens)
+            if (brightness < 45 || (brightness < 100 && contrast < 20)) {
               setWarnings((w: number) => {
                 const newWarnings = w + 1;
                 if (newWarnings >= 3) {
                   navigate('/busted');
                 } else {
-                  toast.error(`VIOLATION: Camera covered or too dark! (${newWarnings}/3)`);
+                  toast.error(`VIOLATION: Camera covered or obscured! (${newWarnings}/3)`);
                 }
                 return newWarnings;
               });

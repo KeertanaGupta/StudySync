@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Plus, X, Users, Trash2, Sparkles, Check } from 'lucide-react';
-import { getGroupEvents, createGroupEvent, getOptimalSlots } from '../../../services/sessionApi';
+import { getGroupEvents, createGroupEvent, getOptimalSlots, removeGroupEvent } from '../../../services/sessionApi';
+import { useAuthStore } from '../../../store/authStore';
 import { toast } from 'sonner';
 
 interface GroupCalendarProps {
@@ -15,6 +16,7 @@ interface GroupEvent {
   start_hour: number;
   duration: number;
   color: string;
+  user: number;
   user_name: string;
 }
 
@@ -36,6 +38,7 @@ export const GroupCalendar: React.FC<GroupCalendarProps> = ({ groupId, groupName
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newEvent, setNewEvent] = useState({ title: '', day: 0, startHour: 9 });
+  const currentUser = useAuthStore(state => state.user);
 
   const fetchData = async () => {
     setLoading(true);
@@ -80,6 +83,21 @@ export const GroupCalendar: React.FC<GroupCalendarProps> = ({ groupId, groupName
       toast.success("Added to group calendar!");
     } catch (err) {
       toast.error("Failed to add event.");
+    }
+  };
+
+  const handleRemoveEvent = async (e: React.MouseEvent, eventId: number) => {
+    e.stopPropagation(); // Don't trigger slot click
+    
+    if (!window.confirm("Are you sure you want to remove this event?")) return;
+
+    try {
+      await removeGroupEvent(groupId, eventId);
+      toast.success("Event removed from calendar.");
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to remove event.");
+      console.error(err);
     }
   };
 
@@ -208,9 +226,21 @@ export const GroupCalendar: React.FC<GroupCalendarProps> = ({ groupId, groupName
                             fontSize: '0.75rem',
                             fontWeight: 900,
                             marginBottom: '4px',
-                            boxShadow: '2px 2px 0 black'
+                            boxShadow: '2px 2px 0 black',
+                            position: 'relative'
                           }}>
-                            <div style={{ fontSize: '0.65rem', opacity: 0.7, marginBottom: '4px' }}>@{ev.user_name}</div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div style={{ fontSize: '0.65rem', opacity: 0.7, marginBottom: '4px' }}>@{ev.user_name}</div>
+                                {currentUser && currentUser.id === ev.user && (
+                                    <button 
+                                        onClick={(e) => handleRemoveEvent(e, ev.id)}
+                                        className="icon-btn small"
+                                        style={{ border: 'none', background: 'none', boxShadow: 'none', width: 'auto', height: 'auto', padding: '2px' }}
+                                    >
+                                        <Trash2 size={12} />
+                                    </button>
+                                )}
+                            </div>
                             {ev.title}
                           </div>
                         ))}
@@ -277,13 +307,6 @@ export const GroupCalendar: React.FC<GroupCalendarProps> = ({ groupId, groupName
         .suggestion-card:hover {
           transform: translate(-4px, -4px);
           box-shadow: 6px 6px 0 black;
-        }
-        .shared-grid-container::-webkit-scrollbar {
-          width: 10px;
-        }
-        .shared-grid-container::-webkit-scrollbar-thumb {
-          background: black;
-          border-radius: 10px;
         }
       `}} />
     </div>

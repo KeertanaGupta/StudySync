@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Upload, FileText, Link, Video, Star, ExternalLink, Search, FolderOpen, Plus, Download } from 'lucide-react';
-import { getResources, uploadResource, starResource } from '../../../services/resourceApi';
+import { BookOpen, Upload, FileText, Link, Video, Star, ExternalLink, Search, FolderOpen, Plus, Download, Trash2, Image as ImageIcon } from 'lucide-react';
+import { getResources, uploadResource, starResource, deleteResource } from '../../../services/resourceApi';
+import { useAuthStore } from '../../../store/authStore';
+import { toast } from 'sonner';
 
 interface Resource {
   id: number;
@@ -18,6 +20,7 @@ interface Resource {
 
 const typeIcons: Record<string, React.ReactNode> = {
   pdf: <FileText size={20} />,
+  image: <ImageIcon size={20} />,
   video: <Video size={20} />,
   link: <Link size={20} />,
   notes: <BookOpen size={20} />,
@@ -25,6 +28,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 
 const typeLabels: Record<string, string> = {
   pdf: 'PDF',
+  image: 'Image',
   video: 'Video',
   link: 'Link',
   notes: 'Notes',
@@ -33,6 +37,7 @@ const typeLabels: Record<string, string> = {
 const colors = ['#fca5a5', '#bae6fd', '#bbf7d0', '#fef08a', '#c4b5fd', '#fbcfe8'];
 
 export const ResourcesPage = () => {
+  const { user } = useAuthStore();
   const [resources, setResources] = useState<Resource[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
@@ -65,8 +70,8 @@ export const ResourcesPage = () => {
   ];
 
   const filtered = resources.filter(r => {
-    const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          r.subject.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (r.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+      (r.subject?.toLowerCase() || '').includes(searchQuery.toLowerCase());
     if (activeFilter === 'starred') return matchesSearch && r.is_starred;
     if (activeFilter !== 'all') return matchesSearch && r.file_type === activeFilter;
     return matchesSearch;
@@ -81,6 +86,18 @@ export const ResourcesPage = () => {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this resource?")) return;
+    try {
+      await deleteResource(id);
+      toast.success("Resource deleted successfully");
+      fetchResources();
+    } catch (err) {
+      toast.error("Failed to delete resource");
+      console.error(err);
+    }
+  };
+
   const handleFileUpload = async (e: any) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -89,15 +106,22 @@ export const ResourcesPage = () => {
     formData.append('file', file);
     formData.append('title', file.name);
     formData.append('subject', 'General');
-    formData.append('file_type', file.type.includes('pdf') ? 'pdf' : 'notes');
+
+    let type: 'pdf' | 'video' | 'image' | 'notes' = 'notes';
+    if (file.type.includes('pdf')) type = 'pdf';
+    else if (file.type.includes('video')) type = 'video';
+    else if (file.type.includes('image')) type = 'image';
+
+    formData.append('file_type', type);
 
     setUploading(true);
     try {
       await uploadResource(formData);
+      toast.success("Resource uploaded successfully!");
       setShowUpload(false);
       fetchResources();
     } catch (err) {
-      alert("Upload failed. Make sure Cloudinary credentials are set in .env");
+      toast.error("Upload failed. Make sure Cloudinary credentials are set in .env");
     } finally {
       setUploading(false);
     }
@@ -134,10 +158,10 @@ export const ResourcesPage = () => {
             <Upload size={40} style={{ opacity: 0.3 }} />
             <h3>{uploading ? 'Uploading to Cloudinary...' : 'Click to select files'}</h3>
             <p style={{ opacity: 0.6, fontSize: '0.85rem' }}>PDF, Video, or Study Notes</p>
-            <input 
-              type="file" 
-              id="file-input" 
-              style={{ display: 'none' }} 
+            <input
+              type="file"
+              id="file-input"
+              style={{ display: 'none' }}
               onChange={handleFileUpload}
               disabled={uploading}
             />
@@ -165,8 +189,18 @@ export const ResourcesPage = () => {
       <div className="resources-grid">
         {filtered.map(resource => (
           <div key={resource.id} className="resource-card neo-card">
-            <div className="resource-card-icon" style={{ background: resource.color }}>
-              {typeIcons[resource.file_type]}
+            <div className="resource-card-icon" style={{ background: resource.color, overflow: 'hidden', position: 'relative' }}>
+              {resource.file_type === 'image' ? (
+                <img
+                  src={resource.file}
+                  alt={resource.title}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = ''; // Fallback to icon if image fails
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              ) : typeIcons[resource.file_type]}
             </div>
             <div className="resource-card-body">
               <div className="resource-type-badge">{typeLabels[resource.file_type]}</div>
@@ -185,10 +219,19 @@ export const ResourcesPage = () => {
               >
                 <Star size={16} fill={resource.is_starred ? '#f59e0b' : 'none'} />
               </button>
-              {resource.file_type === 'link' ? (
-                <a href={resource.file} target="_blank" rel="noreferrer" className="neo-btn-icon small"><ExternalLink size={14} /></a>
-              ) : (
-                <a href={resource.file} download className="neo-btn-icon small"><Download size={14} /></a>
+
+              <a href={resource.file} target="_blank" rel="noreferrer" className="neo-btn-icon small">
+                <ExternalLink size={14} />
+              </a>
+
+              {user?.username === resource.uploader?.username && (
+                <button
+                  className="neo-btn-icon small delete-btn"
+                  onClick={() => handleDelete(resource.id)}
+                  style={{ color: '#ef4444' }}
+                >
+                  <Trash2 size={14} />
+                </button>
               )}
             </div>
           </div>

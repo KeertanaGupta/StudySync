@@ -481,6 +481,55 @@ def fetch_live_google_events(user):
     except SocialToken.DoesNotExist:
         return []
 
+def get_internal_busy_slots(user):
+    from study.models import StudySession, GroupEvent
+    busy = []
+    now = datetime.utcnow()
+    # Next 7 days
+    days_ahead = [now + timedelta(days=i) for i in range(8)]
+    
+    # 1. UserAvailability (Classes)
+    availabilities = UserAvailability.objects.filter(user=user)
+    for avail in availabilities:
+        for d in days_ahead:
+            if d.weekday() == avail.day_of_week:
+                # Create start and end on the specific day
+                start = d.replace(hour=avail.start_time.hour, minute=avail.start_time.minute, second=0, microsecond=0)
+                end = d.replace(hour=avail.end_time.hour, minute=avail.end_time.minute, second=0, microsecond=0)
+                busy.append({
+                    "start": start.isoformat() + "Z",
+                    "end": end.isoformat() + "Z",
+                    "summary": f"Class: {avail.subject or 'Busy'}"
+                })
+
+    # 2. StudySessions
+    sessions = StudySession.objects.filter(
+        models.Q(creator=user) | models.Q(members=user)
+    ).distinct()
+    for sess in sessions:
+        start = sess.scheduled_time
+        end = start + timedelta(minutes=sess.duration)
+        busy.append({
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "summary": f"Study Session: {sess.title}"
+        })
+
+    # 3. GroupEvents
+    group_events = GroupEvent.objects.filter(group__members=user).distinct()
+    for ge in group_events:
+        for d in days_ahead:
+            if d.weekday() == ge.day_of_week:
+                start = d.replace(hour=ge.start_hour, minute=0, second=0, microsecond=0)
+                end = start + timedelta(hours=ge.duration)
+                busy.append({
+                    "start": start.isoformat() + "Z",
+                    "end": end.isoformat() + "Z",
+                    "summary": f"Group Event: {ge.title}"
+                })
+    
+    return busy
+
 def map_user_preferences(availability_string):
     prefs = {"morning": 0.0, "afternoon": 0.0, "evening": 0.0}
     if not availability_string:
@@ -507,13 +556,16 @@ class LiveGroupScheduleView(APIView):
         ai_users_payload = []
         
         for u in users:
-            real_events = fetch_live_google_events(u)
+            google_events = fetch_live_google_events(u)
+            internal_events = get_internal_busy_slots(u)
+            
+            all_busy = google_events + internal_events
             user_prefs = map_user_preferences(u.availability)
             
             ai_users_payload.append({
                 "user_id": u.username or str(u.id), 
                 "timezone": "UTC",
-                "busy_slots": real_events,
+                "busy_slots": all_busy,
                 "preferences": user_prefs
             })
 

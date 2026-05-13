@@ -123,30 +123,7 @@
   align-items: center;
 }
 
-.icon-btn {
-  background: var(--neo-white);
-  border: 2px solid var(--neo-black);
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  cursor: pointer;
-  box-shadow: 2px 2px 0 var(--neo-black);
-  color: var(--neo-black);
-  transition: all 0.1s;
-}
-
-.icon-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0 var(--neo-black);
-}
-
-.icon-btn:active {
-  transform: translate(1px, 1px);
-  box-shadow: 1px 1px 0 var(--neo-black);
-}
+/* Button styles now centralized in index.css */
 
 /* Header */
 .welcome-header h1 {
@@ -341,15 +318,7 @@
   font-size: 1rem;
 }
 
-.btn-primary {
-  background: var(--neo-black);
-  color: var(--neo-white);
-  border: none;
-  padding: 0 20px;
-  font-weight: bold;
-  cursor: pointer;
-  box-shadow: 3px 3px 0 #bae6fd;
-}
+/* Button styles now centralized in index.css */
 
 /* --- SUBPAGE STYLES --- */
 .page-container {
@@ -379,38 +348,7 @@
   margin-top: 5px;
 }
 
-.neo-btn {
-  padding: 10px 20px;
-  background: var(--neo-white);
-  border: 2px solid var(--neo-black);
-  box-shadow: 3px 3px 0 var(--neo-black);
-  font-weight: bold;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: 6px;
-  transition: transform 0.1s;
-}
-
-.neo-btn.primary {
-  background: #fef08a;
-}
-
-.neo-btn.small {
-  padding: 6px 12px;
-  font-size: 0.85rem;
-}
-
-.neo-btn:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0 var(--neo-black);
-}
-
-.neo-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--neo-black);
-}
+/* Button styles now centralized in index.css */
 
 .neo-btn-icon {
   background: var(--neo-white);

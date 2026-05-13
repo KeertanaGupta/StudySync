@@ -64,6 +64,7 @@ export const uploadTimetableOcr = (file: File) => {
 
 export const getGroupEvents = (groupId: number) => API.get(`groups/${groupId}/calendar_events/`);
 export const createGroupEvent = (groupId: number, data: any) => API.post(`groups/${groupId}/calendar_events/`, data);
+export const removeGroupEvent = (groupId: number, eventId: number) => API.delete(`groups/${groupId}/calendar_events/?event_id=${eventId}`);
 
 export const syncGoogleCalendar = () => {
   const token = localStorage.getItem('access_token');
@@ -79,4 +80,3 @@ export const searchUsers = (query: string) => API.get(`groups/search_users/?q=${
 export const inviteToGroup = (groupId: number, userId: number) => API.post(`groups/${groupId}/invite_member/`, { user_id: userId });
 export const removeFromGroup = (groupId: number, userId: number) => API.post(`groups/${groupId}/remove_member/`, { user_id: userId });
 export const deleteSession = (id: number) => API.delete(`sessions/${id}/`);
-

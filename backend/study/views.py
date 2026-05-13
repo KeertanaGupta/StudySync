@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+import math
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -152,7 +153,7 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         group = serializer.save(creator=self.request.user)
         group.members.add(self.request.user)
 
-    @action(detail=True, methods=['get', 'post'])
+    @action(detail=True, methods=['get', 'post', 'delete'])
     def calendar_events(self, request, pk=None):
         group = self.get_object()
         if request.method == 'GET':
@@ -167,6 +168,19 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        elif request.method == 'DELETE':
+            event_id = request.query_params.get('event_id')
+            if not event_id:
+                return Response({"error": "event_id is required in query parameters."}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                event = GroupEvent.objects.get(id=event_id, group=group)
+                if event.user != request.user:
+                    return Response({"error": "Only the creator can remove this event."}, status=status.HTTP_403_FORBIDDEN)
+                event.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            except GroupEvent.DoesNotExist:
+                return Response({"error": "Event not found."}, status=status.HTTP_404_NOT_FOUND)
+
     @action(detail=True, methods=['get'])
     def get_optimal_slots(self, request, pk=None):
         group = self.get_object()
@@ -178,6 +192,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
         
         # 1. Build busy sets for each user
         busy_slots = {m.id: set() for m in members}
+        
+        # 1.1. Add Class Schedule (UserAvailability)
         availabilities = UserAvailability.objects.filter(user__in=members)
         for avail in availabilities:
             start_hour = avail.start_time.hour
@@ -186,11 +202,62 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
             while curr != end_hour:
                 busy_slots[avail.user.id].add((avail.day_of_week, curr))
                 curr = (curr + 1) % 24
+        
+        # 1.2. Add Individual Study Sessions
+        from .models import StudySession
+        sessions = StudySession.objects.filter(
+            models.Q(members__in=members) | models.Q(creator__in=members)
+        ).distinct()
+        for sess in sessions:
+            # StudySessions use DateTimeField, convert to day_of_week and hour
+            # Note: This handles weekly recurrences conceptually by marking the slot
+            d = sess.scheduled_time
+            day = (d.weekday()) # 0=Mon
+            start_h = d.hour
+            duration_h = math.ceil(sess.duration / 60)
+            for i in range(duration_h):
+                busy_slots[sess.creator.id].add((day, (start_h + i) % 24))
+                for m in sess.members.all():
+                    if m.id in busy_slots:
+                        busy_slots[m.id].add((day, (start_h + i) % 24))
+
+        # 1.3. Add Existing Group Events (All groups members belong to)
+        group_events_all = GroupEvent.objects.filter(group__members__in=members).distinct()
+        for ge in group_events_all:
+            for i in range(ge.duration):
+                slot = (int(ge.day_of_week), (int(ge.start_hour) + i) % 24)
+                # Mark as busy for all members in THAT group who are also in OUR group
+                intersecting_members = ge.group.members.filter(id__in=members.values_list('id', flat=True))
+                for m in intersecting_members:
+                    busy_slots[m.id].add(slot)
+
+        # 1.5. Build busy set for existing group events and sessions
+        group_busy_slots = set()
+        
+        # Add Group Events
+        group_events = GroupEvent.objects.filter(group=group)
+        for event in group_events:
+            for i in range(event.duration):
+                group_busy_slots.add((int(event.day_of_week), (int(event.start_hour) + i) % 24))
+        
+        # Add Group Study Sessions
+        group_sessions = StudySession.objects.filter(group=group)
+        for sess in group_sessions:
+            d = sess.scheduled_time
+            day = d.weekday()
+            start_h = d.hour
+            duration_h = math.ceil(sess.duration / 60)
+            for i in range(duration_h):
+                group_busy_slots.add((day, (start_h + i) % 24))
 
         # 2. Score all possible slots (day 0-6, hour 8-22 for realistic study times)
         scores = {}
         for day in range(7):
             for hour in range(8, 23):
+                # Skip if there's already a group event at this time
+                if (day, hour) in group_busy_slots:
+                    continue
+
                 slot_score = 0
                 available_count = 0
                 
@@ -211,8 +278,8 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
                         elif pref == 'weekends' and day in [5, 6]:
                             slot_score += 5
                             
-                # Only consider slots where at least someone is available
-                if available_count > 0:
+                # Only consider slots where EVERYONE is available
+                if available_count == len(members):
                     scores[(day, hour)] = {
                         'score': slot_score,
                         'available_count': available_count

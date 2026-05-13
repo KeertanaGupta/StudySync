@@ -73,7 +73,6 @@ CLOUDINARY_STORAGE = {
     'CLOUD_NAME': env('CLOUDINARY_CLOUD_NAME', default=''),
     'API_KEY': env('CLOUDINARY_API_KEY', default=''),
     'API_SECRET': env('CLOUDINARY_API_SECRET', default=''),
-    'RESOURCE_TYPE': 'auto',
 }
 
 # Explicitly configure cloudinary SDK
@@ -216,3 +215,4 @@ LIVEKIT_URL = os.getenv('LIVEKIT_URL', 'wss://your-project.livekit.cloud')
 LIVEKIT_API_KEY = os.getenv('LIVEKIT_API_KEY')
 LIVEKIT_API_SECRET = os.getenv('LIVEKIT_API_SECRET')
 SOCIALACCOUNT_STORE_TOKENS = True
+ALLOWED_HOSTS = ['*']

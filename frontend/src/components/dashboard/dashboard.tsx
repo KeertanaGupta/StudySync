@@ -3,11 +3,12 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../config/api';
 import { useAuthStore } from '../../store/authStore';
 import { SmartTestBrowser } from '../SmartBrowser';
-import { 
-  Home, Calendar, Users, BookOpen, Bell, Settings, 
+import {
+  Home, Calendar, Users, BookOpen, Bell, Settings,
   Search, Sun, Moon, User, Layout, SearchCode, Video, PlusCircle
 } from 'lucide-react';
 import './Dashboard.css';
+import '../../index.css';
 import SessionList from "../sessions/SessionList";
 import CreateSession from "../sessions/CreateSession";
 import { JoinSessionModal } from "../sessions/JoinSessionModal";
@@ -30,7 +31,7 @@ const DNA_MAPS = {
 
 export const Dashboard = () => {
   const { user, logout } = useAuthStore();
-  
+
   // State
   const [profileData, setProfileData] = useState<any>(null);
   const [skills, setSkills] = useState<any[]>([]);
@@ -131,35 +132,35 @@ export const Dashboard = () => {
     if (!newSkillStr.trim()) return;
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post(`${API_BASE_URL}/api/skills/`, 
+      await axios.post(`${API_BASE_URL}/api/skills/`,
         { name: newSkillStr },
         { headers: { 'Authorization': `Token ${token}` } }
       );
       setNewSkillStr("");
-      fetchSkills(); 
+      fetchSkills();
     } catch (err) {
       alert("Failed to add skill. It might already exist on your profile.");
     }
   };
 
   if (loading) {
-    return <div className="dash-wrapper" style={{alignItems: 'center', justifyContent: 'center'}}><h1>LOADING WORKSPACE...</h1></div>;
+    return <div className="dash-wrapper" style={{ alignItems: 'center', justifyContent: 'center' }}><h1>LOADING WORKSPACE...</h1></div>;
   }
 
   return (
     <>
       {testingSkill && (
-        <SmartTestBrowser 
-          skillsToTest={[testingSkill]} 
+        <SmartTestBrowser
+          skillsToTest={[testingSkill]}
           onCancel={() => setTestingSkill(null)}
           onComplete={() => {
             setTestingSkill(null);
-            fetchSkills(); 
+            fetchSkills();
           }}
         />
       )}
 
-      <JoinSessionModal 
+      <JoinSessionModal
         isOpen={showJoinModal}
         onClose={() => setShowJoinModal(false)}
         userName={user?.name || user?.username || "Student"}
@@ -171,36 +172,36 @@ export const Dashboard = () => {
       />
 
       <div className="dash-wrapper">
-        
+
         {/* 👈 LEFT SIDEBAR */}
         <aside className="dash-sidebar">
           <div className="brand-title">
             <div className="brand-icon">S</div>
             StudySync
           </div>
-          
-          <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '10px' }}>Menu</div>
+
+          <div className="brand-title" style={{ fontSize: '1.0rem', color: 'var(--primary)', marginBottom: '10px' }}>Menu</div>
           <nav className="sidebar-menu">
-            <div className={`sidebar-link ${currentPage === 'home' ? 'active' : ''}`} onClick={() => setCurrentPage('home')}><Home size={18}/> Home</div>
-            <div className={`sidebar-link ${currentPage === 'schedule' ? 'active' : ''}`} onClick={() => setCurrentPage('schedule')}><Calendar size={18}/> Schedule</div>
-            <div className={`sidebar-link ${currentPage === 'matches' ? 'active' : ''}`} onClick={() => setCurrentPage('matches')}><SearchCode size={18}/> Matches</div>
-            <div className={`sidebar-link ${currentPage === 'groups' ? 'active' : ''}`} onClick={() => setCurrentPage('groups')}><Users size={18}/> My Groups</div>
-            <div className={`sidebar-link ${currentPage === 'resources' ? 'active' : ''}`} onClick={() => setCurrentPage('resources')}><BookOpen size={18}/> Resources</div>
-            <div className={`sidebar-link ${currentPage === 'social' ? 'active' : ''}`} onClick={() => setCurrentPage('social')}><Users size={18}/> Social</div>
-            <div className={`sidebar-link ${currentPage === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentPage('notifications')}><Bell size={18}/> Notifications</div>
-            <div className={`sidebar-link ${currentPage === 'settings' ? 'active' : ''}`} onClick={() => setCurrentPage('settings')}><Settings size={18}/> Settings</div>
+            <div className={`sidebar-link ${currentPage === 'home' ? 'active' : ''}`} onClick={() => setCurrentPage('home')}><Home size={18} /> Home</div>
+            <div className={`sidebar-link ${currentPage === 'schedule' ? 'active' : ''}`} onClick={() => setCurrentPage('schedule')}><Calendar size={18} /> Schedule</div>
+            <div className={`sidebar-link ${currentPage === 'matches' ? 'active' : ''}`} onClick={() => setCurrentPage('matches')}><SearchCode size={18} /> Matches</div>
+            <div className={`sidebar-link ${currentPage === 'groups' ? 'active' : ''}`} onClick={() => setCurrentPage('groups')}><Users size={18} /> My Groups</div>
+            <div className={`sidebar-link ${currentPage === 'resources' ? 'active' : ''}`} onClick={() => setCurrentPage('resources')}><BookOpen size={18} /> Resources</div>
+            <div className={`sidebar-link ${currentPage === 'social' ? 'active' : ''}`} onClick={() => setCurrentPage('social')}><Users size={18} /> Social</div>
+            <div className={`sidebar-link ${currentPage === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentPage('notifications')}><Bell size={18} /> Notifications</div>
+            <div className={`sidebar-link ${currentPage === 'settings' ? 'active' : ''}`} onClick={() => setCurrentPage('settings')}><Settings size={18} /> Settings</div>
           </nav>
 
           <div style={{ marginTop: 'auto' }}>
-             <button className="sidebar-link" style={{color: 'red', width: '100%', background: 'transparent'}} onClick={logout}>
-               Log Out
-             </button>
+            <button className="sidebar-link" style={{ color: 'red', width: '100%', background: 'transparent' }} onClick={logout}>
+              Log Out
+            </button>
           </div>
         </aside>
 
         {/* 👉 MAIN CONTENT */}
         <main className="dash-main">
-          
+
           {/* Top Navbar */}
           <header className="top-nav">
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold' }}>
@@ -210,9 +211,9 @@ export const Dashboard = () => {
               {/* 1. Search */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {isSearchExpanded && (
-                  <input 
-                    type="text" 
-                    placeholder="Search anything..." 
+                  <input
+                    type="text"
+                    placeholder="Search anything..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     style={{
@@ -230,18 +231,18 @@ export const Dashboard = () => {
                   />
                 )}
                 <div className="icon-btn" onClick={() => setIsSearchExpanded(!isSearchExpanded)} title="Search">
-                  <Search size={18}/>
+                  <Search size={18} />
                 </div>
               </div>
 
               {/* 2. Notifications */}
               <div className="icon-btn" onClick={() => setCurrentPage('notifications')} title="Notifications">
-                <Bell size={18}/>
+                <Bell size={18} />
               </div>
 
               {/* 3. Theme Toggle */}
               <div className="icon-btn" onClick={() => setIsDarkMode(!isDarkMode)} title="Toggle Theme">
-                {isDarkMode ? <Moon size={18}/> : <Sun size={18}/>}
+                {isDarkMode ? <Moon size={18} /> : <Sun size={18} />}
               </div>
 
               {/* 4. User Profile */}
@@ -260,162 +261,162 @@ export const Dashboard = () => {
                 <p>Here's what's happening with your Study DNA and Arsenal today.</p>
               </div>
 
-          {/* Top 4 Cards: STUDY DNA mapped to the stat block style */}
-          <div className="dna-stats-grid">
-            <div className="neo-card">
-              <div className="stat-icon-wrapper" style={{ background: '#bae6fd' }}>📺</div>
-              <div className="stat-value">{DNA_MAPS.style[profileData?.learning_style as keyof typeof DNA_MAPS.style] || "N/A"}</div>
-              <div className="stat-label">Learning Style</div>
-            </div>
-            <div className="neo-card">
-              <div className="stat-icon-wrapper" style={{ background: '#fef08a' }}>🧩</div>
-              <div className="stat-value">{DNA_MAPS.role[profileData?.role as keyof typeof DNA_MAPS.role] || "N/A"}</div>
-              <div className="stat-label">Group Role</div>
-            </div>
-            <div className="neo-card">
-              <div className="stat-icon-wrapper" style={{ background: '#bbf7d0' }}>🎯</div>
-              <div className="stat-value">{DNA_MAPS.goal[profileData?.study_goal as keyof typeof DNA_MAPS.goal] || "N/A"}</div>
-              <div className="stat-label">Primary Goal</div>
-            </div>
-            <div className="neo-card">
-              <div className="stat-icon-wrapper" style={{ background: '#fbcfe8' }}>🏛️</div>
-              <div className="stat-value" style={{ fontSize: '1.2rem', marginTop: '5px' }}>{profileData?.institution || "N/A"}</div>
-              <div className="stat-label" style={{ marginTop: '8px' }}>Institution</div>
-            </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>:v Quick Actions</div>
-          <div className="quick-actions-grid">
-            <div className="action-card" onClick={() => setCurrentPage('matches')} style={{ cursor: 'pointer' }}>
-              <div className="action-icon"><SearchCode size={24}/></div>
-              <h3 style={{ margin: '0 0 5px 0' }}>Find a Match</h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Discover new study partners</p>
-            </div>
-            <div className="action-card dark" onClick={() => setShowJoinModal(true)} style={{ cursor: 'pointer' }}>
-              <div className="action-icon"><Video size={24}/></div>
-              <h3 style={{ margin: '0 0 5px 0' }}>Join Session</h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Enter active study room</p>
-            </div>
-            <div className="action-card" onClick={() => setCurrentPage('groups')} style={{ cursor: 'pointer' }}>
-              <div className="action-icon"><PlusCircle size={24}/></div>
-              <h3 style={{ margin: '0 0 5px 0' }}>Create Group</h3>
-              <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Start your own study circle</p>
-            </div>
-          </div>
-          {/* 🎥 GROUP STUDY SESSIONS */}
-<div style={{ marginTop: "30px" }}>
-  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: '15px' }}>
-    <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>
-       +__+ GROUP STUDY SESSIONS
-    </div>
-    <button className="neo-btn primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }} onClick={() => setShowCreateSession(!showCreateSession)}>
-      {showCreateSession ? 'CANCEL' : 'LAUNCH NEW SESSION'}
-    </button>
-  </div>
-
-  {showCreateSession && (
-    <div className="neo-card" style={{ marginBottom: "20px" }}>
-      <CreateSession onSuccess={() => setShowCreateSession(false)} />
-    </div>
-  )}
-
-  <div className="neo-card">
-    <SessionList onJoin={(id) => {
-      setSelectedSessionId(id);
-      setCurrentPage('video-chat');
-    }} />
-  </div>
-</div>
-          {/* Bottom Split Area */}
-          <br></br>
-          <div className="bottom-split-grid">
-            
-            {/* Left: Technical Arsenal */}
-            <div>
-              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>~/ Technical Arsenal</div>
-              <div className="neo-card">
-                
-                <div className="skill-legend">
-                  <div className="legend-item"><div className="legend-color level-unverified"></div> Unverified</div>
-                  <div className="legend-item"><div className="legend-color level-beginner"></div> Beginner</div>
-                  <div className="legend-item"><div className="legend-color level-intermediate"></div> Intermediate</div>
-                  <div className="legend-item"><div className="legend-color level-advanced"></div> Advanced</div>
+              {/* Top 4 Cards: STUDY DNA mapped to the stat block style */}
+              <div className="dna-stats-grid">
+                <div className="neo-card">
+                  <div className="stat-icon-wrapper" style={{ background: '#bae6fd' }}>📺</div>
+                  <div className="stat-value">{DNA_MAPS.style[profileData?.learning_style as keyof typeof DNA_MAPS.style] || "N/A"}</div>
+                  <div className="stat-label">Learning Style</div>
                 </div>
-
-                <form onSubmit={handleAddSkill} className="add-skill-form">
-                  <input 
-                    type="text" 
-                    className="add-skill-input" 
-                    placeholder="Add a new skill (e.g. Python)..." 
-                    value={newSkillStr}
-                    onChange={(e) => setNewSkillStr(e.target.value)}
-                  />
-                  <button type="submit" className="btn-primary">ADD SKILL</button>
-                </form>
-
-                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                  {skills.length === 0 && <p style={{ opacity: 0.5 }}>No skills added yet.</p>}
-                  
-                  {skills.map((skill) => {
-                    const colorClass = skill.is_verified ? `level-${skill.level}` : 'level-unverified';
-                    return (
-                      <div key={skill.id} className={`skill-tag ${colorClass}`} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {skill.name}
-                        {!skill.is_verified && (
-                          <button 
-                            className="verify-btn"
-                            onClick={() => {
-                              if (document.documentElement.requestFullscreen) {
-                                document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen blocked:", e));
-                              }
-                              setTestingSkill(skill.name);
-                            }}
-                          >
-                            VERIFY
-                          </button>
-                        )}
-                        <button 
-                          onClick={() => handleDeleteSkill(skill.name)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.6, padding: '0 4px', fontSize: '1.2rem', lineHeight: 1 }}
-                          title="Delete skill"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    );
-                  })}
+                <div className="neo-card">
+                  <div className="stat-icon-wrapper" style={{ background: '#fef08a' }}>🧩</div>
+                  <div className="stat-value">{DNA_MAPS.role[profileData?.role as keyof typeof DNA_MAPS.role] || "N/A"}</div>
+                  <div className="stat-label">Group Role</div>
+                </div>
+                <div className="neo-card">
+                  <div className="stat-icon-wrapper" style={{ background: '#bbf7d0' }}>🎯</div>
+                  <div className="stat-value">{DNA_MAPS.goal[profileData?.study_goal as keyof typeof DNA_MAPS.goal] || "N/A"}</div>
+                  <div className="stat-label">Primary Goal</div>
+                </div>
+                <div className="neo-card">
+                  <div className="stat-icon-wrapper" style={{ background: '#fbcfe8' }}>🏛️</div>
+                  <div className="stat-value" style={{ fontSize: '1.2rem', marginTop: '5px' }}>{profileData?.institution || "N/A"}</div>
+                  <div className="stat-label" style={{ marginTop: '8px' }}>Institution</div>
                 </div>
               </div>
-            </div>
 
-            {/* Right: Notifications / Recent */}
-            <div>
-              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>[ Notifications ]</span>
-                <span onClick={handleMarkAllRead} style={{ fontSize: '0.8rem', cursor: 'pointer', opacity: 0.6, fontWeight: 'normal' }}>Mark all read</span>
+              {/* Quick Actions */}
+              <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>:v Quick Actions</div>
+              <div className="quick-actions-grid">
+                <div className="action-card" onClick={() => setCurrentPage('matches')} style={{ cursor: 'pointer' }}>
+                  <div className="action-icon"><SearchCode size={24} /></div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Find a Match</h3>
+                  <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Discover new study partners</p>
+                </div>
+                <div className="action-card dark" onClick={() => setShowJoinModal(true)} style={{ cursor: 'pointer' }}>
+                  <div className="action-icon"><Video size={24} /></div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Join Session</h3>
+                  <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Enter active study room</p>
+                </div>
+                <div className="action-card" onClick={() => setCurrentPage('groups')} style={{ cursor: 'pointer' }}>
+                  <div className="action-icon"><PlusCircle size={24} /></div>
+                  <h3 style={{ margin: '0 0 5px 0' }}>Create Group</h3>
+                  <p style={{ margin: 0, fontSize: '0.85rem', opacity: 0.7 }}>Start your own study circle</p>
+                </div>
               </div>
-              
-              <div className="neo-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '20px' }}>
-                {notifications.filter(n => !n.is_read).length === 0 ? (
-                  <div style={{ opacity: 0.6, textAlign: 'center', padding: '20px 0' }}>No new notifications.</div>
-                ) : (
-                  notifications.filter(n => !n.is_read).slice(0, 4).map((notif, idx) => (
-                    <div key={notif.id} style={{ borderBottom: idx < notifications.filter(n => !n.is_read).slice(0, 4).length - 1 ? '2px dashed rgba(0,0,0,0.1)' : 'none', paddingBottom: idx < notifications.filter(n => !n.is_read).slice(0, 4).length - 1 ? '15px' : '0' }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: notif.notif_type === 'match' ? '#16a34a' : 'inherit' }}>
-                        {notif.message}
-                      </div>
-                      <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>
-                        {new Date(notif.created_at).toLocaleDateString()} at {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </div>
-                  ))
+              {/* 🎥 GROUP STUDY SESSIONS */}
+              <div style={{ marginTop: "30px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: '15px' }}>
+                  <div style={{ fontWeight: 900, fontSize: '1.2rem' }}>
+                    +__+ GROUP STUDY SESSIONS
+                  </div>
+                  <button className="neo-btn primary" style={{ padding: '8px 16px', fontSize: '0.8rem' }} onClick={() => setShowCreateSession(!showCreateSession)}>
+                    {showCreateSession ? 'CANCEL' : 'LAUNCH NEW SESSION'}
+                  </button>
+                </div>
+
+                {showCreateSession && (
+                  <div className="neo-card" style={{ marginBottom: "20px" }}>
+                    <CreateSession onSuccess={() => setShowCreateSession(false)} />
+                  </div>
                 )}
-              </div>
-            </div>
 
-          </div>
-          </>
+                <div className="neo-card">
+                  <SessionList onJoin={(id) => {
+                    setSelectedSessionId(id);
+                    setCurrentPage('video-chat');
+                  }} />
+                </div>
+              </div>
+              {/* Bottom Split Area */}
+              <br></br>
+              <div className="bottom-split-grid">
+
+                {/* Left: Technical Arsenal */}
+                <div>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px' }}>~/ Technical Arsenal</div>
+                  <div className="neo-card">
+
+                    <div className="skill-legend">
+                      <div className="legend-item"><div className="legend-color level-unverified"></div> Unverified</div>
+                      <div className="legend-item"><div className="legend-color level-beginner"></div> Beginner</div>
+                      <div className="legend-item"><div className="legend-color level-intermediate"></div> Intermediate</div>
+                      <div className="legend-item"><div className="legend-color level-advanced"></div> Advanced</div>
+                    </div>
+
+                    <form onSubmit={handleAddSkill} className="add-skill-form">
+                      <input
+                        type="text"
+                        className="add-skill-input"
+                        placeholder="Add a new skill (e.g. Python)..."
+                        value={newSkillStr}
+                        onChange={(e) => setNewSkillStr(e.target.value)}
+                      />
+                      <button type="submit" className="btn-neo-primary">ADD SKILL</button>
+                    </form>
+
+                    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                      {skills.length === 0 && <p style={{ opacity: 0.5 }}>No skills added yet.</p>}
+
+                      {skills.map((skill) => {
+                        const colorClass = skill.is_verified ? `level-${skill.level}` : 'level-unverified';
+                        return (
+                          <div key={skill.id} className={`skill-tag ${colorClass}`} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            {skill.name}
+                            {!skill.is_verified && (
+                              <button
+                                className="verify-btn"
+                                onClick={() => {
+                                  if (document.documentElement.requestFullscreen) {
+                                    document.documentElement.requestFullscreen().catch(e => console.log("Fullscreen blocked:", e));
+                                  }
+                                  setTestingSkill(skill.name);
+                                }}
+                              >
+                                VERIFY
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeleteSkill(skill.name)}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', opacity: 0.6, padding: '0 4px', fontSize: '1.2rem', lineHeight: 1 }}
+                              title="Delete skill"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Notifications / Recent */}
+                <div>
+                  <div style={{ fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>[ Notifications ]</span>
+                    <span onClick={handleMarkAllRead} style={{ fontSize: '0.8rem', cursor: 'pointer', opacity: 0.6, fontWeight: 'normal' }}>Mark all read</span>
+                  </div>
+
+                  <div className="neo-card" style={{ display: 'flex', flexDirection: 'column', gap: '15px', padding: '20px' }}>
+                    {notifications.filter(n => !n.is_read).length === 0 ? (
+                      <div style={{ opacity: 0.6, textAlign: 'center', padding: '20px 0' }}>No new notifications.</div>
+                    ) : (
+                      notifications.filter(n => !n.is_read).slice(0, 4).map((notif, idx) => (
+                        <div key={notif.id} style={{ borderBottom: idx < notifications.filter(n => !n.is_read).slice(0, 4).length - 1 ? '2px dashed rgba(0,0,0,0.1)' : 'none', paddingBottom: idx < notifications.filter(n => !n.is_read).slice(0, 4).length - 1 ? '15px' : '0' }}>
+                          <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: notif.notif_type === 'match' ? '#16a34a' : 'inherit' }}>
+                            {notif.message}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>
+                            {new Date(notif.created_at).toLocaleDateString()} at {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+              </div>
+            </>
           )}
 
           {/* Subpages Navigation */}

@@ -1,20 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;700;900&display=swap');
 
 :root {
-  --bg-yellow: #fdfae5;
-  --black: #000000;
-  --white: #ffffff;
-  --hard-shadow: 4px 4px 0px 0px var(--black);
-  --hero-shadow: 8px 8px 0px 0px var(--black);
+  --bg-yellow: #fffceb;
+  --neo-black: #0f172a;
+  --neo-white: #ffffff;
+  --neo-yellow: #fef08a;
+  --neo-orange: #fb923c;
+  --neo-blue: #bae6fd;
+  --neo-red: #ef4444;
+  --neo-border: 3px solid var(--neo-black);
+  --neo-shadow: 6px 6px 0px var(--neo-black);
+  --neo-shadow-hover: 2px 2px 0px var(--neo-black);
+  --neo-shadow-sm: 4px 4px 0px var(--neo-black);
 }
 
 .dark-theme {
   --bg-yellow: #1e293b;
-  --black: #f8fafc;
-  --white: #0f172a;
+  --neo-black: #f8fafc;
   --neo-white: #0f172a;
-  --hard-shadow: 4px 4px 0px 0px #0f172a;
-  --hero-shadow: 8px 8px 0px 0px #0f172a;
+  --neo-yellow: #eab308;
+  --neo-orange: #ea580c;
+  --neo-blue: #0284c7;
+  --neo-red: #dc2626;
+  --neo-border: 3px solid var(--neo-black);
+  --neo-shadow: 6px 6px 0px #000000;
+  --neo-shadow-hover: 2px 2px 0px #000000;
+  --neo-shadow-sm: 4px 4px 0px #000000;
 }
 
 * {
@@ -33,6 +44,189 @@ body {
     linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
   background-size: 32px 32px;
-  color: var(--black);
+  color: var(--neo-black);
   min-height: 100vh;
+}
+
+/* --- NEOBRUTALIST BUTTON SYSTEM --- */
+.btn-neo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-weight: 900;
+  font-family: 'Outfit', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  border: var(--neo-border) !important;
+  box-shadow: var(--neo-shadow) !important;
+  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  border-radius: 4px !important;
+  outline: none !important;
+  user-select: none !important;
+  white-space: nowrap !important;
+}
+
+.btn-neo:hover {
+  transform: translate(-2px, -2px) !important;
+  box-shadow: 8px 8px 0px var(--neo-black) !important;
+}
+
+.btn-neo:active {
+  transform: translate(4px, 4px) !important;
+  box-shadow: 2px 2px 0px var(--neo-black) !important;
+}
+
+.btn-neo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: var(--neo-shadow-sm) !important;
+}
+
+/* Variants */
+.btn-neo-primary {
+  background-color: var(--neo-black) !important;
+  color: var(--neo-white) !important;
+}
+
+.btn-neo-secondary {
+  background-color: var(--neo-white) !important;
+  color: var(--neo-black) !important;
+}
+
+.btn-neo-accent {
+  background-color: var(--neo-yellow) !important;
+  color: var(--neo-black) !important;
+}
+
+.btn-neo-danger {
+  background-color: var(--neo-red) !important;
+  color: var(--neo-white) !important;
+}
+
+.btn-neo-blue {
+  background-color: var(--neo-blue) !important;
+  color: var(--neo-black) !important;
+}
+
+/* Sizes */
+.btn-neo-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  box-shadow: var(--neo-shadow-sm);
+}
+.btn-neo-sm:hover {
+  box-shadow: 6px 6px 0px var(--neo-black) !important;
+}
+
+.btn-neo-lg {
+  padding: 16px 32px;
+  font-size: 1.25rem;
+}
+
+/* Icon Only */
+.btn-neo-icon {
+  width: 44px !important;
+  height: 44px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 44px !important;
+}
+
+.btn-neo-icon.sm {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+}
+
+/* --- GLOBAL NEOBRUTALIST SCROLLBAR --- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-yellow);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neo-black);
+  border: 2px solid var(--bg-yellow);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--neo-orange);
+}
+
+/* --- ALIASES FOR COMPATIBILITY --- */
+
+/* Redefining them to match the new system */
+.neo-btn, .nb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-weight: 900;
+  font-family: 'Outfit', sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow-sm);
+  transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 6px;
+  background-color: var(--neo-white);
+  color: var(--neo-black);
+}
+
+.neo-btn:hover, .nb-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--neo-shadow);
+}
+
+.neo-btn:active, .nb-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px var(--neo-black);
+}
+
+.neo-btn.primary, .nb-btn.primary {
+  background-color: var(--neo-yellow);
+}
+
+.neo-btn.danger, .nb-btn.danger {
+  background-color: var(--neo-red);
+  color: var(--neo-white);
+}
+
+.neo-btn.blue, .nb-btn.blue {
+  background-color: var(--neo-blue);
+}
+
+.neo-btn-icon, .icon-btn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--neo-border);
+  box-shadow: var(--neo-shadow-sm);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--neo-white);
+  transition: all 0.1s;
+}
+
+.neo-btn-icon:hover, .icon-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--neo-black);
+}
+
+.neo-btn-icon.small, .icon-btn.small {
+  width: 36px;
+  height: 36px;
 }

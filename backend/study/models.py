@@ -28,16 +28,76 @@ class StudySession(models.Model):
     def __str__(self):
         return self.title
 
+from cloudinary_storage.storage import MediaCloudinaryStorage
+
+class SmartCloudinaryStorage(MediaCloudinaryStorage):
+    def _get_resource_type(self, name):
+        # Use prefixes first (most reliable)
+        if 'resources/img_' in name:
+            return 'image'
+        if 'resources/vid_' in name:
+            return 'video'
+        if 'resources/raw_' in name:
+            return 'raw'
+
+        # Fallback to extension
+        if not name:
+            return 'raw'
+            
+        extension = name.split('.')[-1].lower() if '.' in name else ''
+        
+        image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico']
+        video_extensions = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'wmv', 'flv', 'mkv']
+        
+        if extension in image_extensions:
+            return 'image'
+        elif extension in video_extensions:
+            return 'video'
+        else:
+            return 'raw'
+
+def get_resource_filename(instance, filename):
+    ext = filename.split('.')[-1].lower() if '.' in filename else ''
+    unique_id = uuid.uuid4().hex[:10]
+    base_name = ".".join(filename.split('.')[:-1]) if '.' in filename else filename
+    clean_name = "".join(c for c in base_name if c.isalnum() or c in ('-', '_')).strip()
+    if not clean_name:
+        clean_name = "resource"
+    
+    # Determine prefix and default extension based on model field
+    prefix = "raw_"
+    default_ext = ""
+    
+    if instance.file_type == 'image':
+        prefix = "img_"
+        default_ext = "jpg"
+    elif instance.file_type == 'video':
+        prefix = "vid_"
+        default_ext = "mp4"
+    elif instance.file_type == 'pdf':
+        prefix = "raw_" # PDFs are raw for us
+        default_ext = "pdf"
+    
+    # Use original extension if available, otherwise use default
+    final_ext = ext if ext else default_ext
+    
+    res = f"resources/{prefix}{clean_name}_{unique_id}"
+    if final_ext:
+        res = f"{res}.{final_ext}"
+    
+    return res
+
 class Resource(models.Model):
     RESOURCE_TYPES = [
         ('pdf', 'PDF Document'),
+        ('image', 'Image'),
         ('video', 'Video'),
         ('link', 'External Link'),
         ('notes', 'Study Notes'),
     ]
     title = models.CharField(max_length=255)
     file_type = models.CharField(max_length=20, choices=RESOURCE_TYPES)
-    file = models.FileField(upload_to='resources/') # Cloudinary handles this
+    file = models.FileField(upload_to=get_resource_filename, storage=SmartCloudinaryStorage()) # Dynamic Cloudinary storage
     subject = models.CharField(max_length=100)
     uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='uploaded_resources')
     group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='resources', null=True, blank=True)

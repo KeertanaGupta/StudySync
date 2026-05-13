@@ -100,14 +100,7 @@
   color: var(--neo-black);
 }
 
-.nb-btn-black {
-  background: var(--neo-black);
-  color: var(--neo-white);
-  border: none;
-  padding: 10px 20px;
-  font-weight: bold;
-  cursor: pointer;
-}
+/* Button styles now centralized in index.css */
 
 /* ================= HERO ================= */
 .nb-hero {
@@ -153,37 +146,7 @@
   margin-bottom: 60px;
 }
 
-.nb-btn-primary {
-  background: var(--neo-black);
-  color: var(--neo-white);
-  border: var(--neo-border);
-  padding: 15px 30px;
-  font-weight: bold;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: var(--neo-shadow);
-  transition: all 0.1s;
-}
-
-.nb-btn-secondary {
-  background: transparent;
-  color: var(--neo-black);
-  border: var(--neo-border);
-  padding: 15px 30px;
-  font-weight: bold;
-  font-family: 'Inter', sans-serif;
-  font-size: 1rem;
-  cursor: pointer;
-  box-shadow: var(--neo-shadow);
-  transition: all 0.1s;
-}
-
-.nb-btn-primary:active,
-.nb-btn-secondary:active {
-  transform: translate(4px, 4px);
-  box-shadow: var(--neo-shadow-hover);
-}
+/* Button styles now centralized in index.css */
 
 .nb-trusted {
   font-family: 'Inter', sans-serif;

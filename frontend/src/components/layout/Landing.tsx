@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './Landing.css';
+import '../../index.css';
 
 interface LandingProps {
   onLoginClick: () => void;
@@ -39,7 +40,7 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
             {isDarkMode ? '☾' : '☼'}
           </button>
           <button className="nb-btn-text" onClick={onLoginClick}>Sign in</button>
-          <button className="nb-btn-black" onClick={onLoginClick}>Get Started</button>
+          <button className="btn-neo btn-neo-primary" onClick={onLoginClick}>Get Started</button>
         </div>
       </nav>
 
@@ -59,10 +60,10 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
 
         <div className="nb-cta-group">
           {/* Linked to your Auth flow! */}
-          <button className="nb-btn-primary" onClick={onLoginClick}>
+          <button className="btn-neo btn-neo-accent btn-neo-lg" onClick={onLoginClick}>
             GET STARTED FREE →
           </button>
-          <button className="nb-btn-secondary">▶ Watch Demo</button>
+          <button className="btn-neo btn-neo-secondary btn-neo-lg">▶ Watch Demo</button>
         </div>
 
       </section>
@@ -181,8 +182,8 @@ export const Landing = ({ onLoginClick }: LandingProps) => {
           <p>Join thousands of students already learning faster with AI-matched groups. Free to start.</p>
           <div className="nb-cta-group" style={{ marginBottom: 0 }}>
             {/* Linked to Auth flow! */}
-            <button className="nb-btn-primary" onClick={onLoginClick}>GET STARTED FREE →</button>
-            <button className="nb-btn-secondary" style={{ background: '#fef3c7', color: '#0f172a' }}>Talk to sales</button>
+            <button className="btn-neo btn-neo-accent btn-neo-lg" onClick={onLoginClick}>GET STARTED FREE →</button>
+            <button className="btn-neo btn-neo-secondary btn-neo-lg" style={{ background: '#fef3c7', color: '#0f172a' }}>Talk to sales</button>
           </div>
         </div>
       </section>

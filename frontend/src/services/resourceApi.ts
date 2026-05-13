@@ -23,6 +23,7 @@ export const uploadResource = (formData: FormData) =>
   });
 
 export const starResource = (id: number) => API.post(`resources/${id}/star/`);
+export const deleteResource = (id: number) => API.delete(`resources/${id}/`);
 
 export const getNotifications = () => API.get("notifications/");
 export const markNotifRead = (id: number) => API.post(`notifications/${id}/read/`);
