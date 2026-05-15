@@ -85,7 +85,13 @@ class UserProfileDetailView(APIView):
 
     def get(self, request, pk):
         from users.models import StudyRequest
-        target_user = User.objects.get(pk=pk)
+        from study.models import Resource
+        from study.serializers import ResourceSerializer
+        
+        try:
+            target_user = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         
         is_friend = StudyRequest.objects.filter(
             (models.Q(sender=request.user, receiver=target_user) | 
@@ -93,33 +99,27 @@ class UserProfileDetailView(APIView):
             status='accepted'
         ).exists()
 
+        # If friends, show all resources. Otherwise, only public ones.
+        if is_friend:
+            user_resources = Resource.objects.filter(uploader=target_user)
+        else:
+            user_resources = Resource.objects.filter(uploader=target_user, is_public=True)
+
         data = {
             "id": target_user.id,
             "username": target_user.username,
             "first_name": target_user.first_name,
+            "last_name": target_user.last_name,
             "institution": target_user.institution,
-            "is_friend": is_friend
+            "is_friend": is_friend,
+            "learning_style": target_user.get_learning_style_display(),
+            "study_goal": target_user.get_study_goal_display(),
+            "skills": list(target_user.skills.values_list('skill__name', flat=True)),
+            "role": target_user.get_role_display(),
+            "branch": target_user.branch,
+            "resources": ResourceSerializer(user_resources, many=True).data
         }
 
-        if is_friend:
-            from study.models import Resource
-            from study.serializers import ResourceSerializer
-            user_resources = Resource.objects.filter(uploader=target_user, is_public=True)
-            
-            data.update({
-                "learning_style": target_user.get_learning_style_display(),
-                "study_goal": target_user.get_study_goal_display(),
-                "skills": list(target_user.skills.values_list('skill__name', flat=True)),
-                "role": target_user.get_role_display(),
-                "branch": target_user.branch,
-                "resources": ResourceSerializer(user_resources, many=True).data
-            })
-        else:
-            data.update({
-                "learning_style": "Locked",
-                "skills": ["Hidden"],
-                "role": "Locked"
-            })
         return Response(data)
 
 # ==========================================

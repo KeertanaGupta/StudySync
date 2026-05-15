@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Users, Plus, MessageCircle, Crown, UserPlus, MoreHorizontal, Video, Settings, Search, X, UserMinus } from 'lucide-react';
-import { getGroups, joinSession, createGroup, searchUsers, inviteToGroup, removeFromGroup } from '../../../services/sessionApi';
+import { getGroups, joinSession, createGroup, searchUsers, inviteToGroup, removeFromGroup, discoverGroups, requestToJoinGroup, getJoinRequests, respondToJoinRequest } from '../../../services/sessionApi';
 import { GroupCalendar } from '../components/GroupCalendar';
 import { GroupChat } from '../components/GroupChat';
 import { useAuthStore } from '../../../store/authStore';
@@ -41,6 +41,10 @@ export const GroupsPage = () => {
   const [userSearch, setUserSearch] = useState('');
   const [searchResults, setSearchResults] = useState<GroupMember[]>([]);
   
+  const [activeTab, setActiveTab] = useState<'my' | 'discover' | 'requests'>('my');
+  const [discoverableGroups, setDiscoverableGroups] = useState<StudyGroup[]>([]);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
+  
   const { user } = useAuthStore();
 
   const loadGroups = async () => {
@@ -50,7 +54,7 @@ export const GroupsPage = () => {
       setGroups(res.data.map((g: any, idx: number) => ({
         ...g,
         color: colors[idx % colors.length],
-        subject: 'General Study', // Backend doesn't have subject yet
+        subject: 'General Study', 
         isOwner: typeof g.creator === 'object' ? g.creator.id === user?.id : g.creator === user?.id,
         lastActive: 'Just now',
         sessionsThisWeek: 0
@@ -60,8 +64,32 @@ export const GroupsPage = () => {
     }
   };
 
+  const loadDiscoverableGroups = async () => {
+    try {
+      const res = await discoverGroups();
+      setDiscoverableGroups(res.data.map((g: any, idx: number) => ({
+        ...g,
+        color: '#f1f5f9',
+        subject: 'Explore'
+      })));
+    } catch (err) {
+      console.error("Failed to fetch discoverable groups", err);
+    }
+  };
+
+  const loadJoinRequests = async () => {
+    try {
+      const res = await getJoinRequests();
+      setJoinRequests(res.data);
+    } catch (err) {
+      console.error("Failed to fetch join requests", err);
+    }
+  };
+
   useEffect(() => {
     loadGroups();
+    loadDiscoverableGroups();
+    loadJoinRequests();
   }, []);
 
   const handleJoinSession = async (groupId: number) => {
@@ -133,16 +161,62 @@ export const GroupsPage = () => {
     }
   };
 
+  const handleRequestJoin = async (groupId: number) => {
+    try {
+      await requestToJoinGroup(groupId);
+      toast.success("Join request sent! Waiting for admin approval.");
+      loadDiscoverableGroups();
+      loadJoinRequests(); // To show our own pending request if needed
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to send join request.");
+    }
+  };
+
+  const handleRespondToJoin = async (requestId: number, action: 'approve' | 'reject') => {
+    try {
+      await respondToJoinRequest(requestId, action);
+      toast.success(`Request ${action === 'approve' ? 'approved' : 'rejected'}.`);
+      loadJoinRequests();
+      loadGroups();
+    } catch (err) {
+      toast.error("Failed to respond to request.");
+    }
+  };
+
   return (
     <div className="page-container">
       {/* Page Header */}
       <div className="page-header">
         <div>
-          <h1 className="page-title"><Users size={28} /> My Groups</h1>
-          <p className="page-subtitle">Collaborate with your study circles and manage your teams.</p>
+          <h1 className="page-title"><Users size={28} /> Study Circles</h1>
+          <p className="page-subtitle">Collaborate with your study groups or discover new ones.</p>
         </div>
-        <button className="neo-btn primary" onClick={() => setShowCreateModal(!showCreateModal)}>
-          <Plus size={18} /> Create Group
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="neo-btn primary" onClick={() => setShowCreateModal(!showCreateModal)}>
+            <Plus size={18} /> Create Group
+          </button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+        <button 
+          className={`neo-btn ${activeTab === 'my' ? 'primary' : ''}`} 
+          onClick={() => setActiveTab('my')}
+        >
+          My Groups ({groups.length})
+        </button>
+        <button 
+          className={`neo-btn ${activeTab === 'discover' ? 'primary' : ''}`} 
+          onClick={() => setActiveTab('discover')}
+        >
+          Discover ({discoverableGroups.length})
+        </button>
+        <button 
+          className={`neo-btn ${activeTab === 'requests' ? 'primary' : ''}`} 
+          onClick={() => setActiveTab('requests')}
+        >
+          Requests {joinRequests.filter(r => r.status === 'pending').length > 0 && `(${joinRequests.filter(r => r.status === 'pending').length})`}
         </button>
       </div>
 
@@ -252,75 +326,146 @@ export const GroupsPage = () => {
       )}
 
       {/* Groups Grid */}
-      <div className="groups-grid">
-        {groups.map(group => (
-          <div
-            key={group.id}
-            className={`group-card neo-card ${selectedGroup === group.id ? 'selected' : ''}`}
-            onClick={() => setSelectedGroup(selectedGroup === group.id ? null : group.id)}
-          >
-            {/* Card Header */}
-            <div className="group-card-top" style={{ background: group.color }}>
-              <div className="group-card-top-inner">
-                <h3 className="group-name">{group.name}</h3>
-                {group.isOwner && (
-                  <span className="owner-badge"><Crown size={12} /> Owner</span>
-                )}
-              </div>
-              <p className="group-subject">{group.subject}</p>
-            </div>
-
-            {/* Card Body */}
-            <div className="group-card-body">
-              <p className="group-description">{group.description}</p>
-
-              {/* Members Row */}
-              <div className="group-members-row">
-                <div className="member-avatars">
-                  {group.members.slice(0, 4).map((m, i) => (
-                    <div
-                      key={i}
-                      className="member-avatar"
-                      style={{ background: '#f1f5f9', border: '2px solid black', zIndex: 10 - i }}
-                      title={m.username}
-                    >
-                      {m.username[0].toUpperCase()}
-                    </div>
-                  ))}
-                  {group.members.length > 4 && (
-                    <div className="member-avatar more">+{group.members.length - 4}</div>
+      {activeTab === 'my' && (
+        <div className="groups-grid">
+          {groups.map(group => (
+            <div
+              key={group.id}
+              className={`group-card neo-card ${selectedGroup === group.id ? 'selected' : ''}`}
+              onClick={() => setSelectedGroup(selectedGroup === group.id ? null : group.id)}
+            >
+              {/* Card Header */}
+              <div className="group-card-top" style={{ background: group.color }}>
+                <div className="group-card-top-inner">
+                  <h3 className="group-name">{group.name}</h3>
+                  {group.isOwner && (
+                    <span className="owner-badge"><Crown size={12} /> Owner</span>
                   )}
                 </div>
-                <span className="member-count">{group.members.length} members</span>
+                <p className="group-subject">{group.subject}</p>
               </div>
 
-              {/* Expanded Actions */}
-              {selectedGroup === group.id && (
-                <div className="group-actions">
-                  <button className="neo-btn primary small" onClick={(e) => {
-                    e.stopPropagation();
-                    handleJoinSession(group.id);
-                  }}><Video size={14} /> Start Session</button>
-                  <button className="neo-btn small" onClick={(e) => {
-                    e.stopPropagation();
-                    setChatGroup({ id: group.id, name: group.name });
-                  }}><MessageCircle size={14} /> Chat</button>
-                  <button className="neo-btn small" onClick={(e) => {
-                    e.stopPropagation();
-                    setShowInviteModal(group);
-                  }}><UserPlus size={14} /> Invite</button>
-                  {group.isOwner && (
+              {/* Card Body */}
+              <div className="group-card-body">
+                <p className="group-description">{group.description}</p>
+
+                {/* Members Row */}
+                <div className="group-members-row">
+                  <div className="member-avatars">
+                    {group.members.slice(0, 4).map((m, i) => (
+                      <div
+                        key={i}
+                        className="member-avatar"
+                        style={{ background: '#f1f5f9', border: '2px solid black', zIndex: 10 - i }}
+                        title={m.username}
+                      >
+                        {m.username[0].toUpperCase()}
+                      </div>
+                    ))}
+                    {group.members.length > 4 && (
+                      <div className="member-avatar more">+{group.members.length - 4}</div>
+                    )}
+                  </div>
+                  <span className="member-count">{group.members.length} members</span>
+                </div>
+
+                {/* Expanded Actions */}
+                {selectedGroup === group.id && (
+                  <div className="group-actions">
+                    <button className="neo-btn primary small" onClick={(e) => {
+                      e.stopPropagation();
+                      handleJoinSession(group.id);
+                    }}><Video size={14} /> Start Session</button>
                     <button className="neo-btn small" onClick={(e) => {
                       e.stopPropagation();
-                      setShowManageModal(group);
-                    }}><Settings size={14} /> Manage</button>
-                  )}
-                </div>
-              )}
+                      setChatGroup({ id: group.id, name: group.name });
+                    }}><MessageCircle size={14} /> Chat</button>
+                    <button className="neo-btn small" onClick={(e) => {
+                      e.stopPropagation();
+                      setShowInviteModal(group);
+                    }}><UserPlus size={14} /> Invite</button>
+                    {group.isOwner && (
+                      <button className="neo-btn small" onClick={(e) => {
+                        e.stopPropagation();
+                        setShowManageModal(group);
+                      }}><Settings size={14} /> Manage</button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+          {groups.length === 0 && <p style={{ textAlign: 'center', gridColumn: '1/-1', padding: '40px', opacity: 0.5 }}>You haven't joined any groups yet.</p>}
+        </div>
+      )}
+
+      {activeTab === 'discover' && (
+        <div className="groups-grid">
+          {discoverableGroups.map(group => (
+            <div
+              key={group.id}
+              className="group-card neo-card"
+              style={{ cursor: 'default' }}
+            >
+              <div className="group-card-top" style={{ background: '#f8fafc' }}>
+                <h3 className="group-name">{group.name}</h3>
+                <p className="group-subject">Discover</p>
+              </div>
+              <div className="group-card-body">
+                <p className="group-description">{group.description}</p>
+                <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="member-count">{group.members.length} members</span>
+                  <button 
+                    className="neo-btn primary small" 
+                    onClick={() => handleRequestJoin(group.id)}
+                    disabled={joinRequests.some(r => r.group === group.id && r.status === 'pending')}
+                  >
+                    {joinRequests.some(r => r.group === group.id && r.status === 'pending') ? 'Pending...' : 'Request to Join'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {discoverableGroups.length === 0 && <p style={{ textAlign: 'center', gridColumn: '1/-1', padding: '40px', opacity: 0.5 }}>No new groups to discover.</p>}
+        </div>
+      )}
+
+      {activeTab === 'requests' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <h3 style={{ fontWeight: 900 }}>Pending Join Requests</h3>
+          {joinRequests.filter(r => r.status === 'pending' && r.user.id !== user?.id).map(request => (
+            <div key={request.id} className="neo-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px' }}>
+              <div>
+                <div style={{ fontWeight: 900 }}>{request.user.username}</div>
+                <div style={{ fontSize: '0.9rem', opacity: 0.7 }}>wants to join <span style={{ fontWeight: 700 }}>{request.group_name}</span></div>
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button className="neo-btn primary small" onClick={() => handleRespondToJoin(request.id, 'approve')}>Approve</button>
+                <button className="neo-btn small" onClick={() => handleRespondToJoin(request.id, 'reject')}>Reject</button>
+              </div>
+            </div>
+          ))}
+          {joinRequests.filter(r => r.status === 'pending' && r.user.id !== user?.id).length === 0 && (
+            <p style={{ textAlign: 'center', padding: '40px', opacity: 0.5 }}>No pending requests for your groups.</p>
+          )}
+
+          <h3 style={{ fontWeight: 900, marginTop: '20px' }}>Your Sent Requests</h3>
+          {joinRequests.filter(r => r.user.id === user?.id).map(request => (
+            <div key={request.id} className="neo-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px' }}>
+              <div>
+                <div style={{ fontWeight: 900 }}>{request.group_name}</div>
+                <div style={{ fontSize: '0.9rem' }}>Status: <span style={{ 
+                  fontWeight: 700, 
+                  color: request.status === 'approved' ? 'green' : request.status === 'rejected' ? 'red' : 'orange' 
+                }}>{request.status.toUpperCase()}</span></div>
+              </div>
+            </div>
+          ))}
+          {joinRequests.filter(r => r.user.id === user?.id).length === 0 && (
+            <p style={{ textAlign: 'center', padding: '40px', opacity: 0.5 }}>You haven't sent any join requests.</p>
+          )}
+        </div>
+      )}
 
       {/* Group Intelligence Hub (Calendar) */}
       {selectedGroup && (

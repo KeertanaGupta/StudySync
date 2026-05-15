@@ -113,6 +113,8 @@ class Notification(models.Model):
         ('mention', 'Mention'),
         ('match', 'New Match'),
         ('session', 'Session Update'),
+        ('join_request', 'Join Request'),
+        ('request_approved', 'Request Approved'),
     ]
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     message = models.TextField()
@@ -122,6 +124,18 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.notif_type}"
+
+class GroupJoinRequest(models.Model):
+    group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='join_requests')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='group_join_requests')
+    status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('group', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.group.name} ({self.status})"
 
 class GroupEvent(models.Model):
     group = models.ForeignKey(StudyGroup, on_delete=models.CASCADE, related_name='group_calendar_events')

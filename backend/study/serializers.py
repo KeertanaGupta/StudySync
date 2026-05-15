@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import StudySession, Resource, Notification, StudyGroup, GroupEvent, GroupMessage
+from .models import StudySession, Resource, Notification, StudyGroup, GroupEvent, GroupMessage, GroupJoinRequest
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -70,3 +70,11 @@ class GroupMessageSerializer(serializers.ModelSerializer):
         model = GroupMessage
         fields = '__all__'
         read_only_fields = ['user', 'group']
+
+class GroupJoinRequestSerializer(serializers.ModelSerializer):
+    user = UserMiniSerializer(read_only=True)
+    group_name = serializers.ReadOnlyField(source='group.name')
+    class Meta:
+        model = GroupJoinRequest
+        fields = '__all__'
+        read_only_fields = ['user', 'status']

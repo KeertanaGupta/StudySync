@@ -10,7 +10,7 @@ interface Notification {
   id: number;
   message: string;
   is_read: boolean;
-  notif_type: 'mention' | 'match' | 'session';
+  notif_type: 'mention' | 'match' | 'session' | 'join_request' | 'request_approved';
   created_at: string;
 }
 
@@ -178,7 +178,7 @@ const NotificationsPage = () => {
                 onClick={() => !notif.is_read && handleMarkRead(notif.id)}
               >
                  <div className="res-icon" style={{ background: '#f1f5f9' }}>
-                    {notif.notif_type === 'match' ? <Users size={20} /> : notif.notif_type === 'session' ? <Calendar size={20} /> : <MessageCircle size={20} />}
+                    {notif.notif_type === 'match' || notif.notif_type === 'join_request' ? <Users size={20} /> : notif.notif_type === 'session' ? <Calendar size={20} /> : notif.notif_type === 'request_approved' ? <Check size={20} /> : <MessageCircle size={20} />}
                  </div>
                  <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '0.7rem', fontWeight: 900, opacity: 0.5, marginBottom: '4px' }}>

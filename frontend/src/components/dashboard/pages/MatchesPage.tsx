@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SearchCode, Sparkles, Users, BookOpen, Zap, ChevronRight, Star, Filter } from 'lucide-react';
+import { SearchCode, Sparkles, Users, BookOpen, Zap, ChevronRight, Star, Filter, X, Shield } from 'lucide-react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config/api';
 import { sendStudyRequest } from '../../../services/sessionApi';
@@ -32,6 +32,7 @@ export const MatchesPage = () => {
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
   const { user } = useAuthStore();
 
   const filters = [
@@ -125,6 +126,18 @@ export const MatchesPage = () => {
     }
   };
 
+  const viewProfile = async (id: string) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const res = await axios.get(`${API_BASE_URL}/api/user/profile/${id}/`, {
+        headers: { Authorization: `Token ${token}` }
+      });
+      setSelectedUser(res.data);
+    } catch (err) {
+      toast.error("Profile Data Locked or Unavailable.");
+    }
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -202,6 +215,9 @@ export const MatchesPage = () => {
                   <button className="neo-btn primary small" onClick={(e) => { e.stopPropagation(); handleSendRequest(match.id); }}>
                     <Users size={14} /> Send Request
                   </button>
+                  <button className="neo-btn small" onClick={(e) => { e.stopPropagation(); viewProfile(match.id); }}>
+                    <SearchCode size={14} /> Explore Profile
+                  </button>
                   <button className="neo-btn small">
                     <Star size={14} /> Save
                   </button>
@@ -221,6 +237,79 @@ export const MatchesPage = () => {
           <SearchCode size={48} style={{ opacity: 0.3 }} />
           <h3>No matches found</h3>
           <p>Try clearing your filters or rescanning your network.</p>
+        </div>
+      )}
+
+      {/* Profile Modal - Copy of the logic from FriendsPage for consistency */}
+      {selectedUser && (
+        <div className="nb-modal-overlay" onClick={() => setSelectedUser(null)}>
+          <div className="nb-modal" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setSelectedUser(null)} className="close-modal">
+              <X size={20} />
+            </button>
+
+            <div className="modal-content">
+              <div className="profile-sidebar">
+                <div className="friend-avatar large" style={{ backgroundColor: '#bae6fd' }}>
+                  {selectedUser.first_name?.[0] || selectedUser.username[0]}
+                </div>
+                <h2 className="profile-name">{selectedUser.first_name || selectedUser.username}</h2>
+                <p className="profile-inst">{selectedUser.institution}</p>
+                
+                <div className="profile-stats">
+                  <div className="p-stat">
+                    <span className="p-label">DNA TYPE</span>
+                    <span className="p-value">{selectedUser.learning_style}</span>
+                  </div>
+                  <div className="p-stat">
+                    <span className="p-label">MISSION</span>
+                    <span className="p-value">{selectedUser.study_goal}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="profile-main">
+                <h3 className="section-title">Shared Library</h3>
+                <div className="resources-stack">
+                  {selectedUser.resources?.length > 0 ? (
+                    selectedUser.resources.map((res: any) => (
+                      <div key={res.id} className="resource-item neo-card">
+                        <div className="res-icon">
+                          <BookOpen size={20} />
+                        </div>
+                        <div className="res-info">
+                          <p className="res-title">{res.title}</p>
+                          <p className="res-subject">{res.subject}</p>
+                        </div>
+                        <a href={res.file} target="_blank" rel="noreferrer" className="neo-btn primary small">
+                          View
+                        </a>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="empty-resources">
+                      <p>No public resources shared yet.</p>
+                    </div>
+                  )}
+                </div>
+                
+                {!selectedUser.is_friend && (
+                  <div className="neo-card" style={{ marginTop: '20px', background: '#fef08a', padding: '15px' }}>
+                    <p style={{ margin: 0, fontWeight: 900, fontSize: '0.8rem' }}>
+                      💡 Want to see more? Send a study request to unlock their full DNA profile and private resources!
+                    </p>
+                    <button 
+                      className="neo-btn primary small" 
+                      style={{ marginTop: '10px', width: '100%' }}
+                      onClick={() => handleSendRequest(selectedUser.id)}
+                    >
+                      SEND REQUEST
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

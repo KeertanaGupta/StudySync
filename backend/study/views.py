@@ -4,14 +4,18 @@ import math
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from .models import StudySession, Resource, Notification, StudyGroup, GroupEvent, GroupMessage
+from .models import StudySession, Resource, Notification, StudyGroup, GroupEvent, GroupMessage, GroupJoinRequest
 from .serializers import (
     StudySessionSerializer, ResourceSerializer, NotificationSerializer, 
     StudyGroupSerializer, StudyRequestSerializer, UserAvailabilitySerializer,
-    GroupEventSerializer, GroupMessageSerializer
+    GroupEventSerializer, GroupMessageSerializer, GroupJoinRequestSerializer
 )
 from users.models import UserAvailability, StudyRequest
 from .services.livekit_service import LiveKitService
+import uuid
+import os
+import io
+import re
 import uuid
 import os
 import io
@@ -85,7 +89,7 @@ class ResourceViewSet(viewsets.ModelViewSet):
         
         return Resource.objects.filter(
             models.Q(uploader=user) | # Mine
-            models.Q(uploader_id__in=flat_friend_ids, is_public=True) | # Friends' public ones
+            models.Q(is_public=True) | # ALL public ones
             models.Q(group__members=user) # Shared with my groups
         ).distinct().order_by('-uploaded_at')
 
@@ -152,6 +156,41 @@ class StudyGroupViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         group = serializer.save(creator=self.request.user)
         group.members.add(self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def discover(self, request):
+        # Groups the user is NOT a member of
+        groups = StudyGroup.objects.exclude(members=request.user)
+        serializer = self.get_serializer(groups, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def request_join(self, request, pk=None):
+        group = self.get_object()
+        if group.members.filter(id=request.user.id).exists():
+            return Response({"error": "You are already a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        join_request, created = GroupJoinRequest.objects.get_or_create(
+            group=group,
+            user=request.user,
+            defaults={'status': 'pending'}
+        )
+        
+        if not created and join_request.status == 'pending':
+            return Response({"error": "You already have a pending request for this group."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not created:
+            join_request.status = 'pending'
+            join_request.save()
+
+        # Notify the creator (admin)
+        Notification.objects.create(
+            user=group.creator,
+            message=f"{request.user.username} has requested to join your group: {group.name}",
+            notif_type='join_request'
+        )
+        
+        return Response({"status": "Join request sent successfully."}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['get', 'post', 'delete'])
     def calendar_events(self, request, pk=None):
@@ -509,3 +548,54 @@ class UserAvailabilityViewSet(viewsets.ModelViewSet):
         UserAvailability.objects.bulk_create(objs)
         
         return Response({"status": "Availability updated via OCR"}, status=200)
+        
+class GroupJoinRequestViewSet(viewsets.ModelViewSet):
+    serializer_class = GroupJoinRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Admins see requests for groups they created
+        # Users see their own requests
+        return GroupJoinRequest.objects.filter(
+            models.Q(group__creator=self.request.user) |
+            models.Q(user=self.request.user)
+        ).distinct().order_by('-created_at')
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        join_request = self.get_object()
+        if join_request.group.creator != request.user:
+            return Response({"error": "Only the group admin can approve requests."}, status=status.HTTP_403_FORBIDDEN)
+        
+        join_request.status = 'approved'
+        join_request.save()
+        
+        # Add user to group
+        join_request.group.members.add(join_request.user)
+        
+        # Notify the user
+        Notification.objects.create(
+            user=join_request.user,
+            message=f"Your request to join {join_request.group.name} has been approved!",
+            notif_type='request_approved'
+        )
+        
+        return Response({"status": "Request approved. User added to group."}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        join_request = self.get_object()
+        if join_request.group.creator != request.user:
+            return Response({"error": "Only the group admin can reject requests."}, status=status.HTTP_403_FORBIDDEN)
+        
+        join_request.status = 'rejected'
+        join_request.save()
+        
+        # Notify the user
+        Notification.objects.create(
+            user=join_request.user,
+            message=f"Your request to join {join_request.group.name} has been rejected.",
+            notif_type='join_request'
+        )
+        
+        return Response({"status": "Request rejected."}, status=status.HTTP_200_OK)

@@ -80,3 +80,8 @@ export const searchUsers = (query: string) => API.get(`groups/search_users/?q=${
 export const inviteToGroup = (groupId: number, userId: number) => API.post(`groups/${groupId}/invite_member/`, { user_id: userId });
 export const removeFromGroup = (groupId: number, userId: number) => API.post(`groups/${groupId}/remove_member/`, { user_id: userId });
 export const deleteSession = (id: number) => API.delete(`sessions/${id}/`);
+
+export const discoverGroups = () => API.get('groups/discover/');
+export const requestToJoinGroup = (groupId: number) => API.post(`groups/${groupId}/request_join/`);
+export const getJoinRequests = () => API.get('join-requests/');
+export const respondToJoinRequest = (requestId: number, action: 'approve' | 'reject') => API.post(`join-requests/${requestId}/${action}/`);
